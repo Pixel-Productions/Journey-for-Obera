@@ -1,2 +1,2 @@
-gcc src/* -o oneday
+gcc src/* -o oneday -lm
 #./oneday
