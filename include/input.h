@@ -1,0 +1,3 @@
+void scanon();
+
+void scanoff();
