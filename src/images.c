@@ -41,12 +41,35 @@ void freeimage(struct image img) {
     free(img.data);
 }
 
-struct tilemap loadtilemap(char path[], int tox, int toy, int tsx, int tsy, int tw, int th) {
-    struct tilemap tm;
+struct tilemap loadtilemap(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode) {
+    struct tilemap map;
+    map.map = loadimage(path);
+    map.tw = tw;
+    map.th = th;
+    map.tox = tox;
+    map.toy = toy;
+    map.tsx = tsx;
+    map.tsy = tsy;
+    
+    if (mode == 1)
+        map.tiles = (struct vec2*)malloc(((map.map.width-tox)/(tw+tsx))*(((map.map.height)-toy)/(th+tsy))*sizeof(struct vec2));
+    else
+        map.tiles = (struct vec2*)malloc(0);
 
-    for (int x = 0; x < tw; x++) {
-        for (int y = 0; y < th; y++) {
-
-        }
-    }
+    return map;
 }
+
+void tilemapadd(struct tilemap map, int x, int y) {
+    map.tiles = (struct vec2*)realloc(map.tiles, sizeof(map.tiles)+sizeof(struct vec2));
+
+    struct vec2 nw;
+    nw.x = x;
+    nw.y = y;
+
+    map.tiles[LENOF(map.tiles)] = nw;
+}
+
+void freetilemap(struct tilemap map) {
+    free(map.map.data);
+    free(map.tiles);
+} 

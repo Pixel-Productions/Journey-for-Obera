@@ -34,6 +34,8 @@ struct image shoura_up;
 struct image shoura_left;
 struct image shoura_right;
 
+struct tilemap overworld;
+
 int time = 0;
 
 struct vec2 pos;
@@ -51,6 +53,9 @@ int main() {
     shoura_up = loadimage("assets/textures/shoura_up.bmp");
     shoura_left = loadimage("assets/textures/shoura_left.bmp");
     shoura_right = loadimage("assets/textures/shoura_right.bmp");
+
+    overworld = loadtilemap("assets/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
+    tilemapadd(overworld, 0, 0);
 
     // Ready game
     pos.x = 0;
@@ -96,6 +101,7 @@ int main() {
 
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
 
+        blittile(fbuf, 0, 0, overworld, 0, TOP_LEFT);
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
 
         if (memcmp(fbuf, bbuf, BUF_SIZE) != 0) {
