@@ -4,10 +4,10 @@
 
 struct image loadimage(char path[]);
 
-struct image loadsampleimage(char path[], int x, int y, int w, int h);
+void freeimage(struct image img);
 
-void freeimage();
+struct tilemap loadtilemap(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode);
 
-struct tilemap loadtilemap(char path[]);
+void tilemapadd(struct tilemap map, int x, int y);
 
-void freetilemap();
+void freetilemap(struct tilemap map);

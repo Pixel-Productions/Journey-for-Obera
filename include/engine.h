@@ -15,13 +15,20 @@ struct image {
     int height;
 };
 
-enum DRAW_IMAGE_MODE {
-    TOP_LEFT,
-    CENTERED
-};
-
 struct tilemap {
     struct image map;
+    struct vec2 *tiles;
+    int tw, th, tox, toy, tsx, tsy, mode;
+};
+
+enum DRAW_IMAGE_MODE {
+    TOP_LEFT = 0,
+    CENTERED = 1
+};
+
+enum TILE_DEFINITION_MODE {
+    AUTOMATIC = 0,
+    USER_DEFINED = 1
 };
 
 #define PI 3.1415
@@ -30,11 +37,15 @@ struct tilemap {
 
 #define SIDX(x, y) (IDX(x, y, SCREEN_WIDTH))
 
-#define COLOR(r, g, b, a) ((color_t)(a << 24 | r << 16 | g << 8 | b))
+#define RIDX(i, xb) ((i) % (xb) + (int)(i) * (xb))
+
+#define SRIDX(i) (RIDX(i, SCREEN_WIDTH))
+
+#define COLOR(r, g, b, a) ((color_t)((a) << 24 | (r) << 16 | (g) << 8 | (b)))
 
 #define LENOF(arr) (sizeof(arr) / sizeof(arr[0]))
 
-#define LERP(a, b, x) (a+(b-a)*x)
+#define LERP(a, b, x) ((a)+((b)-(a))*(x))
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
