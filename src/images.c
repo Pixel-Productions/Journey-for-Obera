@@ -51,9 +51,21 @@ struct tilemap loadtilemap(char path[], int tw, int th, int tox, int toy, int ts
     map.tsx = tsx;
     map.tsy = tsy;
     
-    if (mode == 1)
-        map.tiles = (struct vec2*)malloc(((map.map.width-tox)/(tw+tsx))*(((map.map.height)-toy)/(th+tsy))*sizeof(struct vec2));
-    else
+    if (mode == AUTOMATIC) {
+        int x = (map.map.width-tox)/(tw+tsx);
+        int y = (map.map.height-toy)/(th+tsy);
+
+        map.tiles = (struct vec2*)malloc(x*y*sizeof(struct vec2));
+
+        for (int j = 0; j < x; j++) {
+            for (int k = 0; k < y; k++) {
+                struct vec2 tile;
+                tile.x = j*tw+tox+tsx;
+                tile.y = k*th+toy+tsy;
+                map.tiles[IDX(j, k, x)];
+            }
+        }
+    } else
         map.tiles = (struct vec2*)malloc(0);
 
     return map;
