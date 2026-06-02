@@ -101,9 +101,7 @@ int main() {
 
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
 
-        blitimg(fbuf, 16, 16, overworld.map, TOP_LEFT);
-
-        blittile(fbuf, 0, 0, overworld, 0, TOP_LEFT);
+        blittile(fbuf, 0, 0, overworld, 1, TOP_LEFT);
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
 
         if (memcmp(fbuf, bbuf, BUF_SIZE) != 0) {
