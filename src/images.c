@@ -75,10 +75,10 @@ void tilemapadd(struct tilemap map, int x, int y) {
     map.tiles = (struct vec2*)realloc(map.tiles, sizeof(map.tiles)+sizeof(struct vec2));
 
     struct vec2 nw;
-    nw.x = x;
-    nw.y = y;
+    nw.x = x*(map.tw+map.tsx)+map.tox;
+    nw.y = y*(map.th+map.tsx)+map.toy;
 
-    map.tiles[LENOF(map.tiles)] = nw;
+    map.tiles[LENOF(map.tiles)-1] = nw;
 }
 
 void freetilemap(struct tilemap map) {
