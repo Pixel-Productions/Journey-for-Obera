@@ -37,10 +37,6 @@ enum TILE_DEFINITION_MODE {
 
 #define SIDX(x, y) (IDX(x, y, SCREEN_WIDTH))
 
-#define RIDX(i, xb) ((i) % (xb) + (int)(i) * (xb))
-
-#define SRIDX(i) (RIDX(i, SCREEN_WIDTH))
-
 #define COLOR(r, g, b, a) ((color_t)((a) << 24 | (r) << 16 | (g) << 8 | (b)))
 
 #define LENOF(arr) (sizeof(arr) / sizeof(arr[0]))
