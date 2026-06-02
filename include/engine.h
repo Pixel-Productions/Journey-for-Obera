@@ -18,7 +18,7 @@ struct image {
 struct tilemap {
     struct image map;
     struct vec2 *tiles;
-    int tw, th, tox, toy, tsx, tsy, mode;
+    int tc, tw, th, tox, toy, tsx, tsy, mode;
 };
 
 enum DRAW_IMAGE_MODE {

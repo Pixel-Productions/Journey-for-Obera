@@ -47,9 +47,7 @@ void blitsprite(int buffer[], int x, int y, int ix, int iy, int iw, int ih, stru
 void blittile(int buffer[], int x, int y, struct tilemap map, int idx, int mode) {
     for (int j = 0; j < map.tw; j++) {
         for (int k = 0; k < map.th; k++) {
-            int i = IDX(map.tiles[idx].x+j, map.tiles[idx].y+k, map.map.width);
-            printf("%d%s%d%c", i, " vs ", 64*48-1, '\n');
-            //putpix(buffer, x+j-mode*(map.tw/2), y+k-mode*(map.th/2), map.map.data[i]);
+            putpix(buffer, x+j-mode*(map.tw/2), y+k-mode*(map.th/2), map.map.data[IDX(map.tiles[idx].x+j, map.tiles[idx].y+k, map.map.width)]);
         }
     }
 }

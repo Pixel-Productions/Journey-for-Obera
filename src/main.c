@@ -56,6 +56,17 @@ int main() {
 
     overworld = loadtilemap("assets/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
     tilemapadd(overworld, 0, 0);
+    tilemapadd(overworld, 1, 0);
+    tilemapadd(overworld, 2, 0);
+    tilemapadd(overworld, 3, 0);
+    tilemapadd(overworld, 1, 1);
+    tilemapadd(overworld, 2, 1);
+    tilemapadd(overworld, 3, 1);
+    tilemapadd(overworld, 1, 2);
+    tilemapadd(overworld, 2, 2);
+    tilemapadd(overworld, 3, 2);
+
+    printf("%d%s%d%s", overworld.tiles[1].x, ", ", overworld.tiles[1].y, "\r\n");
 
     // Ready game
     pos.x = 0;
@@ -69,7 +80,7 @@ int main() {
 
     char c;
 
-    while (!inputmap['`']) {
+    while (inputmap['`']) {
         memset(inputmap, false, sizeof(inputmap));
 
         while (read(STDIN_FILENO, &c, 1) != 0) {
@@ -123,7 +134,7 @@ int main() {
     freeimage(shoura_left);
     freeimage(shoura_right);
     
-    freetilemap(overworld);
+    //freetilemap(overworld);
 
     scanoff();
 

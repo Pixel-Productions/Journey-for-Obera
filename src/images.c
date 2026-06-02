@@ -65,20 +65,25 @@ struct tilemap loadtilemap(char path[], int tw, int th, int tox, int toy, int ts
                 map.tiles[IDX(j, k, x)];
             }
         }
-    } else
+
+        map.tc = x*y;
+    } else {
         map.tiles = (struct vec2*)malloc(0);
+        map.tc = 0;
+    }
 
     return map;
 }
 
 void tilemapadd(struct tilemap map, int x, int y) {
-    map.tiles = (struct vec2*)realloc(map.tiles, sizeof(map.tiles)+sizeof(struct vec2));
+    map.tc++;
+    map.tiles = (struct vec2*)realloc(map.tiles, map.tc*sizeof(struct vec2));
 
     struct vec2 nw;
     nw.x = x*(map.tw+map.tsx)+map.tox;
     nw.y = y*(map.th+map.tsx)+map.toy;
 
-    map.tiles[LENOF(map.tiles)-1] = nw;
+    map.tiles[map.tc-1] = nw;
 }
 
 void freetilemap(struct tilemap map) {
