@@ -2,24 +2,29 @@
 
 typedef unsigned int color_t;
 
-#define SCREEN_WIDTH 100
-#define SCREEN_HEIGHT 60
+#define SCREEN_WIDTH 96
+#define SCREEN_HEIGHT 64
 
 struct vec2 {
     int x, y;
 };
 
-struct image {
+typedef struct {
     color_t *data;
     int width;
     int height;
-};
+} *image;
 
-struct tilemap {
-    struct image map;
+typedef struct {
+    image map;
     struct vec2 *tiles;
     int tc, tw, th, tox, toy, tsx, tsy, mode;
-};
+} *tilemap;
+
+typedef struct {
+    int width, height;
+    int *data;
+} *tilemapdata;
 
 enum DRAW_IMAGE_MODE {
     TOP_LEFT = 0,
