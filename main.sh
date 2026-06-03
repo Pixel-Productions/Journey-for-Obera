@@ -1,2 +1,2 @@
-gcc src/* -Iinclude -lglfw -o oneday -lm
+gcc src/* -Iinclude -o oneday -lm
 #./oneday

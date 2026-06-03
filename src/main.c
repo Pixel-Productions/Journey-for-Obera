@@ -70,7 +70,7 @@ int main() {
     tilemapadd(overworld, 2, 2);
     tilemapadd(overworld, 3, 2);
 
-    overworld_dat = tilemaplayout("assets/data/tilemaps/overworld.txt");
+    overworld_dat = loadlayout("assets/data/tilemaps/overworld.bin");
 
     // Ready game
     pos.x = 0;
@@ -84,7 +84,7 @@ int main() {
 
     char c;
 
-    while (!inputmap['`']) {
+    while (inputmap['`']) {
         memset(inputmap, false, sizeof(inputmap));
 
         while (read(STDIN_FILENO, &c, 1) != 0) {

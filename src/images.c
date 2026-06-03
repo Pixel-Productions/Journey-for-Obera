@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <memory.h>
 #include "images.h"
 
 image loadimage(char path[]) {
@@ -86,7 +87,7 @@ void tilemapadd(tilemap map, int x, int y) {
     map->tc = map->tc+1;
 }
 
-tilemapdata tilemaplayout(char path[]) {
+tilemapdata loadlayout(char path[]) {
     tilemapdata tmdat = (tilemapdata)malloc(sizeof(*tmdat));
 
     FILE *file = fopen(path, "r");
@@ -98,21 +99,14 @@ tilemapdata tilemaplayout(char path[]) {
     fread(data, 1, len, file);
     fclose(file);
 
-    int di = 0;
-    for (int i = 0; i < len; i++) {
-        if (data[i] != ' ' && data[i] != '\n') {
-            tmdat->data[di] += (char)(data[i]+(char)'0');
-        } else {
-            if (data[i] == '\n') {
-                if (!tmdat->width)
-                    tmdat->width = di;
-                
-            }
-            di++;
-        }
-    }
+    tmdat->width = data[0];
+    tmdat->height = data[1];
 
-    tmdat->height = len / tmdat->width;
+    tmdat->data = (int*)malloc(tmdat->width*tmdat->height*sizeof(int));
+
+    for (int i = 0; i < tmdat->width*tmdat->height; i++) {
+        tmdat->data[i] = data[i+2];
+    }
 
     return tmdat;
 }
