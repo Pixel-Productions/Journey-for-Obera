@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <memory.h>
 #include <math.h>
+#include <sys/ioctl.h>
 #include "engine.h"
 #include "images.h"
 #include "drawing.h"
@@ -13,9 +14,9 @@
 void render(int buffer[]) {
     for (int y = 0; y < SCREEN_HEIGHT; y += 2) {
         for (int x = 0; x < SCREEN_WIDTH; x++) {
-            printf("\033[48;2;%d;%d;%d;38;2;%d;%d;%dm▄\033[0m", buffer[SIDX(x, y)] >> 16 & 0xFF, buffer[SIDX(x, y)] >> 8 & 0xFF, buffer[SIDX(x, y)] & 0xFF, buffer[SIDX(x, y+1)] >> 16 & 0xFF, buffer[SIDX(x, y+1)] >> 8 & 0xFF, buffer[SIDX(x, y+1)] & 0xFF);
+            printf("\033[48;2;%d;%d;%d;38;2;%d;%d;%dm▄", buffer[SIDX(x, y)] >> 16 & 0xFF, buffer[SIDX(x, y)] >> 8 & 0xFF, buffer[SIDX(x, y)] & 0xFF, buffer[SIDX(x, y+1)] >> 16 & 0xFF, buffer[SIDX(x, y+1)] >> 8 & 0xFF, buffer[SIDX(x, y+1)] & 0xFF);
         }
-        printf("%s", "\r\n");
+        printf("%s", "\033[0m\r\n");
     }
 }
 
@@ -27,14 +28,15 @@ color_t fbuf[BUF_LEN] = { 0 };
 color_t bbuf[BUF_LEN] = { 0 };
 
 // Images & game data
-struct image tree;
+image tree;
 
-struct image shoura_down;
-struct image shoura_up;
-struct image shoura_left;
-struct image shoura_right;
+image shoura_down;
+image shoura_up;
+image shoura_left;
+image shoura_right;
 
-struct tilemap overworld;
+tilemap overworld;
+tilemapdata overworld_dat;
 
 int time = 0;
 
@@ -46,6 +48,8 @@ int facingdir = 0;
 bool inputmap[255] = { false };
 
 int main() {
+    printf("\e[?25l");
+
     // Image loading
     tree = loadimage("assets/textures/fall_tree.bmp");
 
@@ -54,7 +58,7 @@ int main() {
     shoura_left = loadimage("assets/textures/shoura_left.bmp");
     shoura_right = loadimage("assets/textures/shoura_right.bmp");
 
-    overworld = loadtilemap("assets/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
+    overworld = loadtilemap("assets/textures/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
     tilemapadd(overworld, 0, 0);
     tilemapadd(overworld, 1, 0);
     tilemapadd(overworld, 2, 0);
@@ -66,7 +70,7 @@ int main() {
     tilemapadd(overworld, 2, 2);
     tilemapadd(overworld, 3, 2);
 
-    printf("%d%s%d%s", overworld.tiles[1].x, ", ", overworld.tiles[1].y, "\r\n");
+    overworld_dat = tilemaplayout("assets/data/tilemaps/overworld.txt");
 
     // Ready game
     pos.x = 0;
@@ -80,7 +84,7 @@ int main() {
 
     char c;
 
-    while (inputmap['`']) {
+    while (!inputmap['`']) {
         memset(inputmap, false, sizeof(inputmap));
 
         while (read(STDIN_FILENO, &c, 1) != 0) {
@@ -108,11 +112,10 @@ int main() {
         pos.x += vel.x;
         pos.y += vel.y;
 
-        memset(fbuf, 0, BUF_SIZE);
-
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
 
-        blittile(fbuf, 0, 0, overworld, 1, TOP_LEFT);
+        blitlayout(fbuf, -pos.x, -pos.y, overworld, overworld_dat);
+
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
 
         if (memcmp(fbuf, bbuf, BUF_SIZE) != 0) {
@@ -134,9 +137,11 @@ int main() {
     freeimage(shoura_left);
     freeimage(shoura_right);
     
-    //freetilemap(overworld);
+    freetilemap(overworld);
 
     scanoff();
+
+    printf("\e[?25h");
 
     return 0;
 }

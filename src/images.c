@@ -3,18 +3,18 @@
 #include <stdbool.h>
 #include "images.h"
 
-struct image loadimage(char path[]) {
-    struct image img;
+image loadimage(char path[]) {
+    image img = (image)malloc(sizeof(*img));
 
     FILE *file = fopen(path, "rb");
 
     unsigned char header[54];
     fread(header, 1, 54, file);
 
-    img.width = header[18];
-    img.height = abs(header[22]);
+    img->width = header[18];
+    img->height = abs(header[22]);
 
-    int size = img.width*img.height;
+    int size = img->width*img->height;
 
     bool ud = header[22] > 0;
 
@@ -23,70 +23,101 @@ struct image loadimage(char path[]) {
     fread(raw, sizeof(int), size*sizeof(int), file);
     
     color_t *data = (color_t*)malloc(size*sizeof(color_t));
-    for (int x = 0; x < img.width; x++) {
-        for (int y = 0; y < img.height; y++) {
-            int i = IDX(x, y, img.width);
-            data[(ud ? IDX(x, img.height-y-1, img.width) : i)] = COLOR(raw[i] >> 16, raw[i] >> 8, raw[i], raw[i] >> 24);
+    for (int x = 0; x < img->width; x++) {
+        for (int y = 0; y < img->height; y++) {
+            int i = IDX(x, y, img->width);
+            data[(ud ? IDX(x, img->height-y-1, img->width) : i)] = COLOR(raw[i] >> 16, raw[i] >> 8, raw[i], raw[i] >> 24);
         }
     }
 
-    img.data = data;
+    img->data = data;
 
     fclose(file);
 
     return img;
 }
 
-void freeimage(struct image img) {
-    free(img.data);
+void freeimage(image img) {
+    free(img->data);
 }
 
-struct tilemap loadtilemap(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode) {
-    struct tilemap map;
-    map.map = loadimage(path);
-    map.tw = tw;
-    map.th = th;
-    map.tox = tox;
-    map.toy = toy;
-    map.tsx = tsx;
-    map.tsy = tsy;
+tilemap loadtilemap(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode) {
+    tilemap map = (tilemap)malloc(sizeof(*map));
+    map->map = loadimage(path);
+    map->tw = tw;
+    map->th = th;
+    map->tox = tox;
+    map->toy = toy;
+    map->tsx = tsx;
+    map->tsy = tsy;
     
     if (mode == AUTOMATIC) {
-        int x = (map.map.width-tox)/(tw+tsx);
-        int y = (map.map.height-toy)/(th+tsy);
+        int x = (map->map->width-tox)/(tw+tsx);
+        int y = (map->map->height-toy)/(th+tsy);
 
-        map.tiles = (struct vec2*)malloc(x*y*sizeof(struct vec2));
+        map->tiles = (struct vec2*)malloc(x*y*sizeof(struct vec2));
 
         for (int j = 0; j < x; j++) {
             for (int k = 0; k < y; k++) {
                 struct vec2 tile;
                 tile.x = j*tw+tox+tsx;
                 tile.y = k*th+toy+tsy;
-                map.tiles[IDX(j, k, x)];
+                map->tiles[IDX(j, k, x)];
             }
         }
 
-        map.tc = x*y;
+        map->tc = x*y;
     } else {
-        map.tiles = (struct vec2*)malloc(0);
-        map.tc = 0;
+        map->tiles = (struct vec2*)malloc(0);
+        map->tc = 0;
     }
 
     return map;
 }
 
-void tilemapadd(struct tilemap map, int x, int y) {
-    map.tc++;
-    map.tiles = (struct vec2*)realloc(map.tiles, map.tc*sizeof(struct vec2));
+void tilemapadd(tilemap map, int x, int y) {
+    map->tiles = (struct vec2*)realloc(map->tiles, (map->tc+1)*sizeof(struct vec2));
 
     struct vec2 nw;
-    nw.x = x*(map.tw+map.tsx)+map.tox;
-    nw.y = y*(map.th+map.tsx)+map.toy;
+    nw.x = x*(map->tw+map->tsx)+map->tox;
+    nw.y = y*(map->th+map->tsx)+map->toy;
 
-    map.tiles[map.tc-1] = nw;
+    map->tiles[map->tc] = nw;
+    map->tc = map->tc+1;
 }
 
-void freetilemap(struct tilemap map) {
-    free(map.map.data);
-    free(map.tiles);
-} 
+tilemapdata tilemaplayout(char path[]) {
+    tilemapdata tmdat = (tilemapdata)malloc(sizeof(*tmdat));
+
+    FILE *file = fopen(path, "r");
+
+    fseek(file, 0, SEEK_END);
+    int len = ftell(file);
+
+    unsigned char *data = (unsigned char*)malloc(len);
+    fread(data, 1, len, file);
+    fclose(file);
+
+    int di = 0;
+    for (int i = 0; i < len; i++) {
+        if (data[i] != ' ' && data[i] != '\n') {
+            tmdat->data[di] += (char)(data[i]+(char)'0');
+        } else {
+            if (data[i] == '\n') {
+                if (!tmdat->width)
+                    tmdat->width = di;
+                
+            }
+            di++;
+        }
+    }
+
+    tmdat->height = len / tmdat->width;
+
+    return tmdat;
+}
+
+void freetilemap(tilemap map) {
+    free(map->map->data);
+    free(map->tiles);
+}

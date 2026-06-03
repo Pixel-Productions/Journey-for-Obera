@@ -28,26 +28,44 @@ void blitcol(int buffer[], int minx, int miny, int maxx, int maxy, color_t color
     }
 }
 
-void blitimg(int buffer[], int x, int y, struct image img, int mode) {
-    for (int j = 0; j < img.width; j++) {
-        for (int k = 0; k < img.height; k++) {
-            putpix(buffer, x+j-mode*(img.width/2), y+k-mode*(img.height/2), img.data[IDX(j, k, img.width)]);
+void blitimg(int buffer[], int x, int y, image img, int mode) {
+    int a = x-mode*(img->width/2);
+    int b = y-mode*(img->height/2);
+    int w = img->width;
+    for (int j = 0; j < img->width; j++) {
+        for (int k = 0; k < img->height; k++) {
+            putpix(buffer, a+j, b+k, img->data[IDX(j, k, w)]);
         }
     }
 }
 
-void blitsprite(int buffer[], int x, int y, int ix, int iy, int iw, int ih, struct image img, int mode) {
+void blitsprite(int buffer[], int x, int y, int ix, int iy, int iw, int ih, image img, int mode) {
+    int a = x-mode*(iw/2);
+    int b = y-mode*(ih/2);
     for (int j = 0; j < iw; j++) {
         for (int k = 0; k < ih; k++) {
-            putpix(buffer, x+j-mode*(iw/2), y+k-mode*(ih/2), img.data[IDX(j+ix, k+iy, iw)]);
+            putpix(buffer, a+j, b+k, img->data[IDX(j+ix, k+iy, iw)]);
         }
     }
 }
 
-void blittile(int buffer[], int x, int y, struct tilemap map, int idx, int mode) {
-    for (int j = 0; j < map.tw; j++) {
-        for (int k = 0; k < map.th; k++) {
-            putpix(buffer, x+j-mode*(map.tw/2), y+k-mode*(map.th/2), map.map.data[IDX(map.tiles[idx].x+j, map.tiles[idx].y+k, map.map.width)]);
+void blittile(int buffer[], int x, int y, tilemap map, int idx, int mode) {
+    int a = x-mode*(map->tw/2);
+    int b = y-mode*(map->th/2);
+    int tx = map->tiles[idx].x;
+    int ty = map->tiles[idx].y;
+    int w = map->map->width;
+    for (int j = 0; j < map->tw; j++) {
+        for (int k = 0; k < map->th; k++) {
+            putpix(buffer, a+j, b+k, map->map->data[IDX(tx+j, ty+k, w)]);
+        }
+    }
+}
+
+void blitlayout(int buffer[], int x, int y, tilemap map, tilemapdata dat) {
+    for (int j = 0; j < dat->width; j++) {
+        for (int k = 0; k < dat->height; k++) {
+            blittile(buffer, x+dat->data[IDX(j, k, dat->width)]*16, y+dat->data[IDX(j, k, dat->width)]*16, map, IDX(j, k, dat->width), TOP_LEFT);
         }
     }
 }
