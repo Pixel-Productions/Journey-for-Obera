@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <memory.h>
+#include <unistd.h>
 #include "images.h"
 
 image loadimage(char path[]) {
@@ -42,76 +43,81 @@ void freeimage(image img) {
     free(img->data);
 }
 
-tilemap loadtilemap(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode) {
-    tilemap map = (tilemap)malloc(sizeof(*map));
-    map->map = loadimage(path);
-    map->tw = tw;
-    map->th = th;
-    map->tox = tox;
-    map->toy = toy;
-    map->tsx = tsx;
-    map->tsy = tsy;
+tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode) {
+    tileset set = (tileset)malloc(sizeof(*set));
+    set->map = loadimage(path);
+    set->tw = tw;
+    set->th = th;
+    set->tox = tox;
+    set->toy = toy;
+    set->tsx = tsx;
+    set->tsy = tsy;
     
     if (mode == AUTOMATIC) {
-        int x = (map->map->width-tox)/(tw+tsx);
-        int y = (map->map->height-toy)/(th+tsy);
+        int x = (set->map->width-tox)/(tw+tsx);
+        int y = (set->map->height-toy)/(th+tsy);
 
-        map->tiles = (struct vec2*)malloc(x*y*sizeof(struct vec2));
+        set->tiles = (struct vec2*)malloc(x*y*sizeof(struct vec2));
 
         for (int j = 0; j < x; j++) {
             for (int k = 0; k < y; k++) {
                 struct vec2 tile;
                 tile.x = j*tw+tox+tsx;
                 tile.y = k*th+toy+tsy;
-                map->tiles[IDX(j, k, x)];
+                set->tiles[IDX(j, k, x)];
             }
         }
 
-        map->tc = x*y;
+        set->tc = x*y;
     } else {
-        map->tiles = (struct vec2*)malloc(0);
-        map->tc = 0;
+        set->tiles = (struct vec2*)malloc(0);
+        set->tc = 0;
     }
 
-    return map;
+    return set;
 }
 
-void tilemapadd(tilemap map, int x, int y) {
-    map->tiles = (struct vec2*)realloc(map->tiles, (map->tc+1)*sizeof(struct vec2));
+void tilesetadd(tileset set, int x, int y) {
+    set->tiles = (struct vec2*)realloc(set->tiles, (set->tc+1)*sizeof(struct vec2));
 
     struct vec2 nw;
-    nw.x = x*(map->tw+map->tsx)+map->tox;
-    nw.y = y*(map->th+map->tsx)+map->toy;
+    nw.x = x*(set->tw+set->tsx)+set->tox;
+    nw.y = y*(set->th+set->tsx)+set->toy;
 
-    map->tiles[map->tc] = nw;
-    map->tc = map->tc+1;
+    set->tiles[set->tc] = nw;
+    set->tc = set->tc+1;
 }
 
-tilemapdata loadlayout(char path[]) {
-    tilemapdata tmdat = (tilemapdata)malloc(sizeof(*tmdat));
+tilemap loadtilemap(char path[]) {
+    tilemap map = (tilemap)malloc(sizeof(*map));
 
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(path, "rb");
 
     fseek(file, 0, SEEK_END);
     int len = ftell(file);
+    rewind(file);
 
     unsigned char *data = (unsigned char*)malloc(len);
     fread(data, 1, len, file);
     fclose(file);
 
-    tmdat->width = data[0];
-    tmdat->height = data[1];
+    map->width = data[0];
+    map->height = data[1];
 
-    tmdat->data = (int*)malloc(tmdat->width*tmdat->height*sizeof(int));
+    map->data = (int*)malloc(map->width*map->height*sizeof(int));
 
-    for (int i = 0; i < tmdat->width*tmdat->height; i++) {
-        tmdat->data[i] = data[i+2];
+    for (int i = 0; i < map->width*map->height; i++) {
+        map->data[i] = data[i+2];
     }
 
-    return tmdat;
+    return map;
+}
+
+void freetileset(tileset set) {
+    free(set->map->data);
+    free(set->tiles);
 }
 
 void freetilemap(tilemap map) {
-    free(map->map->data);
-    free(map->tiles);
+    free(map->data);
 }

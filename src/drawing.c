@@ -6,18 +6,20 @@ void clear() {
 }
 
 void putpix(int buffer[], int x, int y, color_t color) {
-    float a = (color >> 24 & 0xFF) / 255.0f;
-    int r2 = color >> 16 & 0xFF;
-    int g2 = color >> 8 & 0xFF;
-    int b2 = color & 0xFF;
-    
-    int r1 = buffer[SIDX(x, y)] >> 16 & 0xFF;
-    int g1 = buffer[SIDX(x, y)] >> 8 & 0xFF;
-    int b1 = buffer[SIDX(x, y)] & 0xFF;
+    if (x >= 0 && x <= SCREEN_WIDTH && y >= 0 && y <= SCREEN_HEIGHT) {
+        float a = (color >> 24 & 0xFF) / 255.0f;
+        int r2 = color >> 16 & 0xFF;
+        int g2 = color >> 8 & 0xFF;
+        int b2 = color & 0xFF;
+        
+        int r1 = buffer[SIDX(x, y)] >> 16 & 0xFF;
+        int g1 = buffer[SIDX(x, y)] >> 8 & 0xFF;
+        int b1 = buffer[SIDX(x, y)] & 0xFF;
 
-    color_t final = COLOR((int)LERP(r1, r2, a), (int)LERP(g1, g2, a), (int)LERP(b1, b2, a), (int)(a*255));
+        color_t final = COLOR((int)LERP(r1, r2, a), (int)LERP(g1, g2, a), (int)LERP(b1, b2, a), (int)(a*255));
 
-    buffer[SIDX(x, y)] = final;
+        buffer[SIDX(x, y)] = final;
+    }
 }
 
 void blitcol(int buffer[], int minx, int miny, int maxx, int maxy, color_t color) {
@@ -49,23 +51,33 @@ void blitsprite(int buffer[], int x, int y, int ix, int iy, int iw, int ih, imag
     }
 }
 
-void blittile(int buffer[], int x, int y, tilemap map, int idx, int mode) {
-    int a = x-mode*(map->tw/2);
-    int b = y-mode*(map->th/2);
-    int tx = map->tiles[idx].x;
-    int ty = map->tiles[idx].y;
-    int w = map->map->width;
-    for (int j = 0; j < map->tw; j++) {
-        for (int k = 0; k < map->th; k++) {
-            putpix(buffer, a+j, b+k, map->map->data[IDX(tx+j, ty+k, w)]);
+void blittile(int buffer[], int x, int y, tileset set, int idx, int mode) {
+    int a = x-mode*(set->tw/2);
+    int b = y-mode*(set->th/2);
+    int tx = set->tiles[idx].x;
+    int ty = set->tiles[idx].y;
+    int w = set->map->width;
+    for (int j = 0; j < set->tw; j++) {
+        for (int k = 0; k < set->th; k++) {
+            putpix(buffer, a+j, b+k, set->map->data[IDX(tx+j, ty+k, w)]);
         }
     }
 }
 
-void blitlayout(int buffer[], int x, int y, tilemap map, tilemapdata dat) {
-    for (int j = 0; j < dat->width; j++) {
-        for (int k = 0; k < dat->height; k++) {
-            blittile(buffer, x+dat->data[IDX(j, k, dat->width)]*16, y+dat->data[IDX(j, k, dat->width)]*16, map, IDX(j, k, dat->width), TOP_LEFT);
+void blittilemap(int buffer[], int x, int y, tileset set, tilemap map, int mode) {
+    int w = map->width;
+    for (int j = 0; j < w; j++) {
+        for (int k = 0; k < map->height; k++) {
+            blittile(buffer, x+j*16, y+k*16, set, map->data[IDX(j, k, w)], mode);
         }
+    }
+}
+
+void render(int buffer[]) {
+    for (int y = 0; y < SCREEN_HEIGHT; y += 2) {
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
+            printf("\033[48;2;%d;%d;%d;38;2;%d;%d;%dm▄", buffer[SIDX(x, y)] >> 16 & 0xFF, buffer[SIDX(x, y)] >> 8 & 0xFF, buffer[SIDX(x, y)] & 0xFF, buffer[SIDX(x, y+1)] >> 16 & 0xFF, buffer[SIDX(x, y+1)] >> 8 & 0xFF, buffer[SIDX(x, y+1)] & 0xFF);
+        }
+        printf("%s", "\033[0m\r\n");
     }
 }

@@ -5,20 +5,11 @@
 #include <unistd.h>
 #include <memory.h>
 #include <math.h>
-#include <sys/ioctl.h>
 #include "engine.h"
 #include "images.h"
 #include "drawing.h"
 #include "input.h"
-
-void render(int buffer[]) {
-    for (int y = 0; y < SCREEN_HEIGHT; y += 2) {
-        for (int x = 0; x < SCREEN_WIDTH; x++) {
-            printf("\033[48;2;%d;%d;%d;38;2;%d;%d;%dm▄", buffer[SIDX(x, y)] >> 16 & 0xFF, buffer[SIDX(x, y)] >> 8 & 0xFF, buffer[SIDX(x, y)] & 0xFF, buffer[SIDX(x, y+1)] >> 16 & 0xFF, buffer[SIDX(x, y+1)] >> 8 & 0xFF, buffer[SIDX(x, y+1)] & 0xFF);
-        }
-        printf("%s", "\033[0m\r\n");
-    }
-}
+#include "items.h"
 
 // Screen buffers
 #define BUF_LEN SCREEN_WIDTH*SCREEN_HEIGHT
@@ -35,15 +26,18 @@ image shoura_up;
 image shoura_left;
 image shoura_right;
 
-tilemap overworld;
-tilemapdata overworld_dat;
+tileset overworld;
+tilemap overworld_dat;
+
+item apple;
 
 int time = 0;
 
 struct vec2 pos;
 struct vec2 vel;
-int maxspeed = 2;
+int maxspeed = 5;
 int facingdir = 0;
+item inventory[36];
 
 bool inputmap[255] = { false };
 
@@ -58,19 +52,23 @@ int main() {
     shoura_left = loadimage("assets/textures/shoura_left.bmp");
     shoura_right = loadimage("assets/textures/shoura_right.bmp");
 
-    overworld = loadtilemap("assets/textures/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
-    tilemapadd(overworld, 0, 0);
-    tilemapadd(overworld, 1, 0);
-    tilemapadd(overworld, 2, 0);
-    tilemapadd(overworld, 3, 0);
-    tilemapadd(overworld, 1, 1);
-    tilemapadd(overworld, 2, 1);
-    tilemapadd(overworld, 3, 1);
-    tilemapadd(overworld, 1, 2);
-    tilemapadd(overworld, 2, 2);
-    tilemapadd(overworld, 3, 2);
+    overworld = loadtileset("assets/textures/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
+    tilesetadd(overworld, 0, 0);
+    tilesetadd(overworld, 1, 0);
+    tilesetadd(overworld, 2, 0);
+    tilesetadd(overworld, 3, 0);
+    tilesetadd(overworld, 1, 1);
+    tilesetadd(overworld, 2, 1);
+    tilesetadd(overworld, 3, 1);
+    tilesetadd(overworld, 1, 2);
+    tilesetadd(overworld, 2, 2);
+    tilesetadd(overworld, 3, 2);
 
-    overworld_dat = loadlayout("assets/data/tilemaps/overworld.bin");
+    overworld_dat = loadtilemap("assets/data/tilemaps/overworld.bin");
+
+    apple = loaditem("assets/data/items/apple.bin");
+
+    printf("%s", apple->name);
 
     // Ready game
     pos.x = 0;
@@ -114,7 +112,7 @@ int main() {
 
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
 
-        blitlayout(fbuf, -pos.x, -pos.y, overworld, overworld_dat);
+        blittilemap(fbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
 
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
 
@@ -137,7 +135,10 @@ int main() {
     freeimage(shoura_left);
     freeimage(shoura_right);
     
-    freetilemap(overworld);
+    freetileset(overworld);
+    freetilemap(overworld_dat);
+
+    freeitem(apple);
 
     scanoff();
 
