@@ -6,25 +6,14 @@
 
 int itc = 0;
 
-item loaditem(char path[]) {
+item loaditem(char name[], size_t len) {
     item itm = (item)malloc(sizeof(*itm));
     itm->id = itc;
-
-    FILE *file = fopen(path, "rb");
-
-    fseek(file, 0, SEEK_END);
-    int len = ftell(file);
-    rewind(file);
-
-    unsigned char *data = (unsigned char*)malloc(len);
-
-    fread(data, 1, len, file);
-
-    itm->name = (char*)malloc(data[0]);
+    itm->name = name;
     
-    for (int i = 0; i < data[0]; i++) {
-        itm->name[i] = data[i+1];
-    }
+    char pth[27+len];
+    sprintf(pth, "assets/textures/items/%s.bmp", name);
+    itm->texture = loadimage(pth);
 
     itc++;
 
@@ -32,6 +21,5 @@ item loaditem(char path[]) {
 }
 
 void freeitem(item itm) {
-    free(itm->name);
-    //freeimage(itm->texture);
+    freeimage(itm->texture);
 }

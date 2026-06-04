@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <memory.h>
 #include <unistd.h>
 #include "images.h"
@@ -57,32 +56,34 @@ tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int 
         int x = (set->map->width-tox)/(tw+tsx);
         int y = (set->map->height-toy)/(th+tsy);
 
-        set->tiles = (struct vec2*)malloc(x*y*sizeof(struct vec2));
+        set->tiles = (tile*)malloc(x*y*sizeof(tile));
 
         for (int j = 0; j < x; j++) {
             for (int k = 0; k < y; k++) {
-                struct vec2 tile;
-                tile.x = j*tw+tox+tsx;
-                tile.y = k*th+toy+tsy;
+                tile nw;
+                nw.x = j*tw+tox+tsx;
+                nw.y = k*th+toy+tsy;
+                nw.hascoll = false;
                 set->tiles[IDX(j, k, x)];
             }
         }
 
         set->tc = x*y;
     } else {
-        set->tiles = (struct vec2*)malloc(0);
+        set->tiles = (tile*)malloc(0);
         set->tc = 0;
     }
 
     return set;
 }
 
-void tilesetadd(tileset set, int x, int y) {
-    set->tiles = (struct vec2*)realloc(set->tiles, (set->tc+1)*sizeof(struct vec2));
+void tilesetadd(tileset set, int x, int y, bool hascoll) {
+    set->tiles = (tile*)realloc(set->tiles, (set->tc+1)*sizeof(tile));
 
-    struct vec2 nw;
+    tile nw;
     nw.x = x*(set->tw+set->tsx)+set->tox;
     nw.y = y*(set->th+set->tsx)+set->toy;
+    nw.hascoll = hascoll;
 
     set->tiles[set->tc] = nw;
     set->tc = set->tc+1;

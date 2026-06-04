@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #define __ENGINE
 
 typedef unsigned int color_t;
@@ -5,9 +7,9 @@ typedef unsigned int color_t;
 #define SCREEN_WIDTH 96
 #define SCREEN_HEIGHT 64
 
-struct vec2 {
+typedef struct {
     int x, y;
-};
+} vec2;
 
 typedef struct {
     color_t *data;
@@ -16,8 +18,13 @@ typedef struct {
 } *image;
 
 typedef struct {
+    int x, y;
+    bool hascoll;
+} tile;
+
+typedef struct {
     image map;
-    struct vec2 *tiles;
+    tile *tiles;
     int tc, tw, th, tox, toy, tsx, tsy, mode;
 } *tileset;
 

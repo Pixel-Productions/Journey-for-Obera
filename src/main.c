@@ -10,6 +10,7 @@
 #include "drawing.h"
 #include "input.h"
 #include "items.h"
+#include "physics.h"
 
 // Screen buffers
 #define BUF_LEN SCREEN_WIDTH*SCREEN_HEIGHT
@@ -17,6 +18,7 @@
 
 color_t fbuf[BUF_LEN] = { 0 };
 color_t bbuf[BUF_LEN] = { 0 };
+bool cbuf[BUF_LEN] = { false };
 
 // Images & game data
 image tree;
@@ -33,8 +35,8 @@ item apple;
 
 int time = 0;
 
-struct vec2 pos;
-struct vec2 vel;
+vec2 pos;
+vec2 vel;
 int maxspeed = 5;
 int facingdir = 0;
 item inventory[36];
@@ -53,22 +55,20 @@ int main() {
     shoura_right = loadimage("assets/textures/shoura_right.bmp");
 
     overworld = loadtileset("assets/textures/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
-    tilesetadd(overworld, 0, 0);
-    tilesetadd(overworld, 1, 0);
-    tilesetadd(overworld, 2, 0);
-    tilesetadd(overworld, 3, 0);
-    tilesetadd(overworld, 1, 1);
-    tilesetadd(overworld, 2, 1);
-    tilesetadd(overworld, 3, 1);
-    tilesetadd(overworld, 1, 2);
-    tilesetadd(overworld, 2, 2);
-    tilesetadd(overworld, 3, 2);
+    tilesetadd(overworld, 0, 0, true);
+    tilesetadd(overworld, 1, 0, false);
+    tilesetadd(overworld, 2, 0, false);
+    tilesetadd(overworld, 3, 0, false);
+    tilesetadd(overworld, 1, 1, false);
+    tilesetadd(overworld, 2, 1, false);
+    tilesetadd(overworld, 3, 1, false);
+    tilesetadd(overworld, 1, 2, false);
+    tilesetadd(overworld, 2, 2, false);
+    tilesetadd(overworld, 3, 2, false);
 
     overworld_dat = loadtilemap("assets/data/tilemaps/overworld.bin");
 
-    apple = loaditem("assets/data/items/apple.bin");
-
-    printf("%s", apple->name);
+    apple = loaditem("apple", 5);
 
     // Ready game
     pos.x = 0;
@@ -82,7 +82,7 @@ int main() {
 
     char c;
 
-    while (inputmap['`']) {
+    while (!inputmap['`']) {
         memset(inputmap, false, sizeof(inputmap));
 
         while (read(STDIN_FILENO, &c, 1) != 0) {
@@ -107,14 +107,12 @@ int main() {
         } else if (vel.x != 0)
             vel.x -= (vel.x / abs(vel.x));
 
-        pos.x += vel.x;
-        pos.y += vel.y;
-
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
-
-        blittilemap(fbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
-
+        blittilemap(fbuf, cbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
+        collrect(cbuf, -pos.x, -pos.y, -pos.x+16, -pos.y+16);
+        
+        moveandcoll(cbuf, vel, &pos);
 
         if (memcmp(fbuf, bbuf, BUF_SIZE) != 0) {
             memcpy(bbuf, fbuf, BUF_SIZE);

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "drawing.h"
+#include "physics.h"
 
 void clear() {
     printf("%s", "\033[H");
@@ -51,7 +52,7 @@ void blitsprite(int buffer[], int x, int y, int ix, int iy, int iw, int ih, imag
     }
 }
 
-void blittile(int buffer[], int x, int y, tileset set, int idx, int mode) {
+void blittile(int buffer[], bool cbuf[], int x, int y, tileset set, int idx, int mode) {
     int a = x-mode*(set->tw/2);
     int b = y-mode*(set->th/2);
     int tx = set->tiles[idx].x;
@@ -62,13 +63,15 @@ void blittile(int buffer[], int x, int y, tileset set, int idx, int mode) {
             putpix(buffer, a+j, b+k, set->map->data[IDX(tx+j, ty+k, w)]);
         }
     }
+    if (set->tiles[idx].hascoll)
+        collrect(cbuf, x, y, x+16, y+16);
 }
 
-void blittilemap(int buffer[], int x, int y, tileset set, tilemap map, int mode) {
+void blittilemap(int buffer[], bool cbuf[], int x, int y, tileset set, tilemap map, int mode) {
     int w = map->width;
     for (int j = 0; j < w; j++) {
         for (int k = 0; k < map->height; k++) {
-            blittile(buffer, x+j*16, y+k*16, set, map->data[IDX(j, k, w)], mode);
+            blittile(buffer, cbuf, x+j*16, y+k*16, set, map->data[IDX(j, k, w)], mode);
         }
     }
 }
