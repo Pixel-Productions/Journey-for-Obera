@@ -5,7 +5,8 @@
 image loadimage(char path[]);
 void freeimage(image img);
 
-tilemap loadtilemap(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode);
-void tilemapadd(tilemap map, int x, int y);
-tilemapdata loadlayout(char path[]);
+tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode);
+void tilesetadd(tileset set, int x, int y);
+tilemap loadtilemap(char path[]);
+void freetileset(tileset set);
 void freetilemap(tilemap map);

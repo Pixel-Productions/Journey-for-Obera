@@ -19,12 +19,12 @@ typedef struct {
     image map;
     struct vec2 *tiles;
     int tc, tw, th, tox, toy, tsx, tsy, mode;
-} *tilemap;
+} *tileset;
 
 typedef struct {
     int width, height;
     int *data;
-} *tilemapdata;
+} *tilemap;
 
 enum DRAW_IMAGE_MODE {
     TOP_LEFT = 0,
@@ -35,6 +35,14 @@ enum TILE_DEFINITION_MODE {
     AUTOMATIC = 0,
     USER_DEFINED = 1
 };
+
+
+typedef struct {
+    int id;
+    char *name;
+    image texture;
+} *item;
+
 
 #define PI 3.1415
 
