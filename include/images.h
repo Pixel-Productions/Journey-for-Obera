@@ -1,8 +1,6 @@
 #include <stdbool.h>
 
-#ifndef __ENGINE
 #include "engine.h"
-#endif
 
 image loadimage(char path[]);
 void freeimage(image img);

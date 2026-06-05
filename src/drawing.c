@@ -76,6 +76,20 @@ void blittilemap(int buffer[], bool cbuf[], int x, int y, tileset set, tilemap m
     }
 }
 
+void blitscreen(int buffer[], screen scr) {
+    for (int i = 0; i < scr.ec; i++) {
+        uielem elem = scr.elems[i];
+
+        for (int x = 0; x < elem.width; x++) {
+            for (int y = 0; y < elem.height; y++) {
+                buffer[SIDX(elem.x+x, elem.y+y)] = elem.data[SIDX(elem.x+x, elem.y+y)];
+            }
+        }
+    }
+}
+
+
+
 void render(int buffer[]) {
     for (int y = 0; y < SCREEN_HEIGHT; y += 2) {
         for (int x = 0; x < SCREEN_WIDTH; x++) {

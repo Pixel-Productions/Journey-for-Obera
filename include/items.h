@@ -1,6 +1,4 @@
-#ifndef __ENGINE
 #include "engine.h"
-#endif
 
-item loaditem(char name[], size_t len);
+item loaditem(char dpth[], char tpth[]);
 void freeitem(item itm);

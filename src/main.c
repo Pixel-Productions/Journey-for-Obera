@@ -11,8 +11,10 @@
 #include "input.h"
 #include "items.h"
 #include "physics.h"
+#include "ui.h"
 
-// Screen buffers
+#pragma region SCREEN BUFFERS
+
 #define BUF_LEN SCREEN_WIDTH*SCREEN_HEIGHT
 #define BUF_SIZE BUF_LEN*sizeof(color_t)
 
@@ -20,8 +22,9 @@ color_t fbuf[BUF_LEN] = { 0 };
 color_t bbuf[BUF_LEN] = { 0 };
 bool cbuf[BUF_LEN] = { false };
 
-// Images & game data
-image tree;
+#pragma endregion
+
+#pragma region ASSETS
 
 image shoura_down;
 image shoura_up;
@@ -33,21 +36,28 @@ tilemap overworld_dat;
 
 item apple;
 
+screen inventory_scr;
+
+#pragma endregion
+
+#pragma region PLAYER DATA
+
 int time = 0;
 
 vec2 pos;
 vec2 vel;
 int maxspeed = 2;
 int facingdir = 0;
+
+bool iopen = false;
 item inventory[36];
+
+#pragma endregion
 
 bool inputmap[255] = { false };
 
 int main() {
     printf("\e[?25l");
-
-    // Image loading
-    tree = loadimage("assets/textures/fall_tree.bmp");
 
     shoura_down = loadimage("assets/textures/shoura_down.bmp");
     shoura_up = loadimage("assets/textures/shoura_up.bmp");
@@ -68,7 +78,9 @@ int main() {
 
     overworld_dat = loadtilemap("assets/data/tilemaps/overworld.bin");
 
-    apple = loaditem("apple", 5);
+    apple = loaditem("assets/data/items/apple.bin", "assets/textures/items/apple.bmp");
+
+    inventory_scr = loadscreen("assets/data/ui/inventory.bin");
 
     // Ready game
     pos.x = 0;
@@ -107,11 +119,16 @@ int main() {
         } else if (vel.x != 0)
             vel.x -= (vel.x / abs(vel.x));
         
+        if (inputmap['e'])
+            iopen = !iopen;
+        
         memset(cbuf, false, sizeof(cbuf));
 
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
         blittilemap(fbuf, cbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
+        
+        blitscreen(fbuf, inventory_scr);
 
         moveandcoll(cbuf, &vel, &pos);
 
@@ -127,8 +144,6 @@ int main() {
         usleep(33000);
     }
 
-    freeimage(tree);
-
     freeimage(shoura_down);
     freeimage(shoura_up);
     freeimage(shoura_left);
@@ -138,6 +153,8 @@ int main() {
     freetilemap(overworld_dat);
 
     freeitem(apple);
+
+    freescreen(inventory_scr);
 
     scanoff();
 
