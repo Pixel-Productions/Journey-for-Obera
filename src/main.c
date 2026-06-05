@@ -55,7 +55,7 @@ int main() {
     shoura_right = loadimage("assets/textures/shoura_right.bmp");
 
     overworld = loadtileset("assets/textures/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
-    tilesetadd(overworld, 0, 0, false);
+    tilesetadd(overworld, 0, 0, true);
     tilesetadd(overworld, 1, 0, false);
     tilesetadd(overworld, 2, 0, false);
     tilesetadd(overworld, 3, 0, false);
@@ -112,8 +112,8 @@ int main() {
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
         blittilemap(fbuf, cbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
-        
-        moveandcoll(cbuf, vel, &pos);
+
+        moveandcoll(cbuf, &vel, &pos);
 
         if (memcmp(fbuf, bbuf, BUF_SIZE) != 0) {
             memcpy(bbuf, fbuf, BUF_SIZE);

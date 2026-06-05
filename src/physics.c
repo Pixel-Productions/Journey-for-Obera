@@ -8,9 +8,9 @@ void collrect(bool buffer[], int minx, int miny, int maxx, int maxy) {
     }
 }
 
-void moveandcoll(bool buffer[], vec2 vel, vec2 *pos) {
-    if (buffer[SIDX(SCREEN_WIDTH/2+9, SCREEN_HEIGHT/2)] && vel.x > 0 || buffer[SIDX(SCREEN_WIDTH/2-9, SCREEN_HEIGHT/2)] && vel.x < 0) vel.x = 0;
-    if (buffer[SIDX(SCREEN_WIDTH/2, SCREEN_HEIGHT/2+9)] && vel.y < 0 || buffer[SIDX(SCREEN_WIDTH/2, SCREEN_HEIGHT/2-9)] && vel.y > 0) vel.y = 0;
-    pos->x += vel.x;
-    pos->y += vel.y;
+void moveandcoll(bool buffer[], vec2 *vel, vec2 *pos) {
+    if (buffer[SIDX(SCREEN_WIDTH/2+9, SCREEN_HEIGHT/2)] && vel->x > 0 || buffer[SIDX(SCREEN_WIDTH/2-9, SCREEN_HEIGHT/2)] && vel->x < 0) vel->x = 0;
+    if (buffer[SIDX(SCREEN_WIDTH/2, SCREEN_HEIGHT/2+9)] && vel->y > 0 || buffer[SIDX(SCREEN_WIDTH/2, SCREEN_HEIGHT/2-9)] && vel->y < 0) vel->y = 0;
+    pos->x += vel->x;
+    pos->y += vel->y;
 }
