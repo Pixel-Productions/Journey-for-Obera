@@ -7,7 +7,7 @@ void clear() {
 }
 
 void putpix(int buffer[], int x, int y, color_t color) {
-    if (x >= 0 && x <= SCREEN_WIDTH && y >= 0 && y <= SCREEN_HEIGHT) {
+    if (x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT) {
         float a = (color >> 24 & 0xFF) / 255.0f;
         int r2 = color >> 16 & 0xFF;
         int g2 = color >> 8 & 0xFF;
@@ -31,7 +31,7 @@ void blitcol(int buffer[], int minx, int miny, int maxx, int maxy, color_t color
     }
 }
 
-void blitimg(int buffer[], int x, int y, image img, int mode) {
+void blitimg(int buffer[], int x, int y, image img, enum DRAW_IMAGE_MODE mode) {
     int a = x-mode*(img->width/2);
     int b = y-mode*(img->height/2);
     int w = img->width;
@@ -42,7 +42,7 @@ void blitimg(int buffer[], int x, int y, image img, int mode) {
     }
 }
 
-void blitsprite(int buffer[], int x, int y, int ix, int iy, int iw, int ih, image img, int mode) {
+void blitsprite(int buffer[], int x, int y, int ix, int iy, int iw, int ih, image img, enum DRAW_IMAGE_MODE mode) {
     int a = x-mode*(iw/2);
     int b = y-mode*(ih/2);
     for (int j = 0; j < iw; j++) {
@@ -52,7 +52,7 @@ void blitsprite(int buffer[], int x, int y, int ix, int iy, int iw, int ih, imag
     }
 }
 
-void blittile(int buffer[], bool cbuf[], int x, int y, tileset set, int idx, int mode) {
+void blittile(int buffer[], bool cbuf[], int x, int y, tileset set, int idx, enum DRAW_IMAGE_MODE mode) {
     int a = x-mode*(set->tw/2);
     int b = y-mode*(set->th/2);
     int tx = set->tiles[idx].x;
@@ -64,10 +64,10 @@ void blittile(int buffer[], bool cbuf[], int x, int y, tileset set, int idx, int
         }
     }
     if (set->tiles[idx].hascoll)
-        collrect(cbuf, x, y, x+16, y+16);
+        collrect(cbuf, x, y, x+set->tw, y+set->th);
 }
 
-void blittilemap(int buffer[], bool cbuf[], int x, int y, tileset set, tilemap map, int mode) {
+void blittilemap(int buffer[], bool cbuf[], int x, int y, tileset set, tilemap map, enum DRAW_IMAGE_MODE mode) {
     int w = map->width;
     for (int j = 0; j < w; j++) {
         for (int k = 0; k < map->height; k++) {

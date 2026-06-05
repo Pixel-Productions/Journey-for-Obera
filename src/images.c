@@ -42,7 +42,7 @@ void freeimage(image img) {
     free(img->data);
 }
 
-tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, int mode) {
+tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, enum TILE_DEFINITION_MODE mode) {
     tileset set = (tileset)malloc(sizeof(*set));
     set->map = loadimage(path);
     set->tw = tw;

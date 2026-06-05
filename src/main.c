@@ -37,7 +37,7 @@ int time = 0;
 
 vec2 pos;
 vec2 vel;
-int maxspeed = 5;
+int maxspeed = 2;
 int facingdir = 0;
 item inventory[36];
 
@@ -55,7 +55,7 @@ int main() {
     shoura_right = loadimage("assets/textures/shoura_right.bmp");
 
     overworld = loadtileset("assets/textures/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
-    tilesetadd(overworld, 0, 0, true);
+    tilesetadd(overworld, 0, 0, false);
     tilesetadd(overworld, 1, 0, false);
     tilesetadd(overworld, 2, 0, false);
     tilesetadd(overworld, 3, 0, false);
@@ -106,11 +106,12 @@ int main() {
             facingdir = 3;
         } else if (vel.x != 0)
             vel.x -= (vel.x / abs(vel.x));
+        
+        memset(cbuf, false, sizeof(cbuf));
 
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
         blittilemap(fbuf, cbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
-        collrect(cbuf, -pos.x, -pos.y, -pos.x+16, -pos.y+16);
         
         moveandcoll(cbuf, vel, &pos);
 
