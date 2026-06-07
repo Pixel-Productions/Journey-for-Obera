@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <memory.h>
 #include "ui.h"
+#include "drawing.h"
+#include "assets.h"
 
 screen loadscreen(char path[]) {
     screen scr;
@@ -27,33 +29,61 @@ screen loadscreen(char path[]) {
 
         int inc = 0;
 
-        switch (data[mi+2]) {
-            case 0:
-                int xs = data[mi+3]-elem.x;
-                int ys = data[mi+4]-elem.y;
+        int type = data[mi+2];
+        if (type == 0) {
+            int mx = data[mi+3];
+            int my = data[mi+4];
+        
+            int xs = mx-elem.x;
+            int ys = my-elem.y;
 
-                elem.width = xs;
-                elem.height = ys;
+            elem.width = xs;
+            elem.height = ys;
 
-                elem.data = (int*)malloc(xs*ys*sizeof(int));
-                memset(elem.data, COLOR(data[mi+5], data[mi+6], data[mi+7], data[mi+8]), xs*ys*sizeof(int));
-                
-                inc = 9;
-                break;
-            case 1:
-                int pln = data[mi+3];
+            elem.data = (color_t*)malloc(xs*ys*sizeof(color_t));
+            
+            color_t col = COLOR(data[mi+5], data[mi+6], data[mi+7], data[mi+8]);
+            for (int x = elem.x; x < mx; x++) {
+                for (int y = elem.y; y < my; y++) {
+                    elem.data[IDX(x, y, elem.width)] = col;
+                }
+            }
+            
+            inc = 9;
+        } else if (type == 1) {
+            int pln = data[mi+3];
 
-                char pth[pln];
-                memcpy(pth, data+mi+4, pln);
+            char pth[pln];
+            memcpy(pth, data+mi+4, pln);
 
-                image img = loadimage(pth);
-                elem.data = img->data;
+            image img = loadimage(pth);
+            elem.data = img.data;
 
-                elem.width = img->width;
-                elem.height = img->height;
+            elem.width = img.width;
+            elem.height = img.height;
 
-                inc = pln+4;
-                break;
+            inc = pln+4;
+        } else if (type == 2) {
+            int sln = data[mi+3];
+
+            char str[sln];
+            memcpy(str, data+mi+4, sln);
+
+            color_t txt[sln*36];
+
+            for (int i = 0; i < len; i++) {
+                for (int j = 0; j < 6; j++) {
+                    for (int k = 0; k < 6; k++) {
+                        putpix(txt, j+i*6, k, sln*6, font_default.data[IDX(j+(str[i]-32)*6, k, font_default.width)]);
+                    }
+                }
+            }
+
+            elem.data = txt;
+            elem.width = sln*6;
+            elem.height = 6;
+
+            inc = sln+4;
         }
 
         scr.elems[i] = elem;

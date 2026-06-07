@@ -12,6 +12,7 @@
 #include "items.h"
 #include "physics.h"
 #include "ui.h"
+#include "assets.h"
 
 #pragma region SCREEN BUFFERS
 
@@ -21,22 +22,6 @@
 color_t fbuf[BUF_LEN] = { 0 };
 color_t bbuf[BUF_LEN] = { 0 };
 bool cbuf[BUF_LEN] = { false };
-
-#pragma endregion
-
-#pragma region ASSETS
-
-image shoura_down;
-image shoura_up;
-image shoura_left;
-image shoura_right;
-
-tileset overworld;
-tilemap overworld_dat;
-
-item apple;
-
-screen inventory_scr;
 
 #pragma endregion
 
@@ -58,6 +43,8 @@ bool inputmap[255] = { false };
 
 int main() {
     printf("\e[?25l");
+
+    font_default = loadimage("assets/textures/fonts/font_default.bmp");
 
     shoura_down = loadimage("assets/textures/shoura_down.bmp");
     shoura_up = loadimage("assets/textures/shoura_up.bmp");
@@ -92,14 +79,8 @@ int main() {
     // Input setup
     scanon();
 
-    char c;
-
     while (!inputmap['`']) {
-        memset(inputmap, false, sizeof(inputmap));
-
-        while (read(STDIN_FILENO, &c, 1) != 0) {
-            inputmap[c] = true;
-        }
+        getinput(inputmap);
 
         if (inputmap['w']) {
             vel.y = MAX(vel.y - 1, -maxspeed);
@@ -128,7 +109,9 @@ int main() {
         blittilemap(fbuf, cbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
         
-        blitscreen(fbuf, inventory_scr);
+        if (iopen) {
+            blitscreen(fbuf, inventory_scr);
+        }
 
         moveandcoll(cbuf, &vel, &pos);
 
@@ -143,18 +126,12 @@ int main() {
 
         usleep(33000);
     }
-
-    freeimage(shoura_down);
-    freeimage(shoura_up);
-    freeimage(shoura_left);
-    freeimage(shoura_right);
     
     freetileset(overworld);
-    freetilemap(overworld_dat);
 
-    freeitem(apple);
+    //freeitem(apple);
 
-    freescreen(inventory_scr);
+    //freescreen(inventory_scr);
 
     scanoff();
 

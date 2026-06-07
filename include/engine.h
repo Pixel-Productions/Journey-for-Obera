@@ -1,12 +1,11 @@
 #include <stdbool.h>
 
-#ifndef __ENGINE
-#define __ENGINE
-
-typedef unsigned int color_t;
+#pragma once
 
 #define SCREEN_WIDTH 96
 #define SCREEN_HEIGHT 64
+
+typedef unsigned int color_t;
 
 enum DRAW_IMAGE_MODE {
     TOP_LEFT = 0,
@@ -31,7 +30,7 @@ typedef struct {
     color_t *data;
     int width;
     int height;
-} *image;
+} image;
 
 typedef struct {
     int x, y;
@@ -48,12 +47,12 @@ typedef struct {
 typedef struct {
     int width, height;
     int *data;
-} *tilemap;
+} tilemap;
 
 
 typedef struct {
     int x, y, width, height;
-    int *data;
+    color_t *data;
 } uielem;
 
 typedef struct {
@@ -69,7 +68,7 @@ typedef struct {
     image texture;
     enum ITEM_TYPE type;
     int *data;
-} *item;
+} item;
 
 
 #define PI 3.1415
@@ -89,5 +88,3 @@ typedef struct {
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #define CLAMP(a, x, y) (MIN(MAX((a), (x)), (y)))
-
-#endif

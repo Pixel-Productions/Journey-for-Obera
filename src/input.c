@@ -1,5 +1,6 @@
 #include <termios.h>
 #include <unistd.h>
+#include <memory.h>
 #include "input.h"
 
 struct termios old;
@@ -24,4 +25,14 @@ void scanon() {
 
 void scanoff() {
     tcsetattr(STDIN_FILENO, TCSANOW, &old);
+}
+
+void getinput(bool map[]) {
+    char c;
+
+    memset(map, false, 255);
+
+    while (read(STDIN_FILENO, &c, 1) != 0) {
+        map[c] = true;
+    }
 }

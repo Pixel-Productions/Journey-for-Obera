@@ -5,17 +5,17 @@
 #include "images.h"
 
 image loadimage(char path[]) {
-    image img = (image)malloc(sizeof(*img));
+    image img;
 
     FILE *file = fopen(path, "rb");
 
     unsigned char header[54];
     fread(header, 1, 54, file);
 
-    img->width = header[18];
-    img->height = abs(header[22]);
+    img.width = header[19] << 8 | header[18];
+    img.height = abs(header[23] << 8 | header[22]);
 
-    int size = img->width*img->height;
+    int size = img.width*img.height;
 
     bool ud = header[22] > 0;
 
@@ -23,23 +23,18 @@ image loadimage(char path[]) {
     fseek(file, header[10], SEEK_SET);
     fread(raw, sizeof(int), size*sizeof(int), file);
     
-    color_t *data = (color_t*)malloc(size*sizeof(color_t));
-    for (int x = 0; x < img->width; x++) {
-        for (int y = 0; y < img->height; y++) {
-            int i = IDX(x, y, img->width);
-            data[(ud ? IDX(x, img->height-y-1, img->width) : i)] = COLOR(raw[i] >> 16, raw[i] >> 8, raw[i], raw[i] >> 24);
+    img.data = (color_t*)malloc(size*sizeof(color_t));
+
+    for (int x = 0; x < img.width; x++) {
+        for (int y = 0; y < img.height; y++) {
+            int i = IDX(x, y, img.width);
+            img.data[(ud ? IDX(x, img.height-y-1, img.width) : i)] = COLOR(raw[i] >> 16, raw[i] >> 8, raw[i], raw[i] >> 24);
         }
     }
-
-    img->data = data;
 
     fclose(file);
 
     return img;
-}
-
-void freeimage(image img) {
-    free(img->data);
 }
 
 tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, enum TILE_DEFINITION_MODE mode) {
@@ -53,8 +48,8 @@ tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int 
     set->tsy = tsy;
     
     if (mode == AUTOMATIC) {
-        int x = (set->map->width-tox)/(tw+tsx);
-        int y = (set->map->height-toy)/(th+tsy);
+        int x = (set->map.width-tox)/(tw+tsx);
+        int y = (set->map.height-toy)/(th+tsy);
 
         set->tiles = (tile*)malloc(x*y*sizeof(tile));
 
@@ -90,7 +85,7 @@ void tilesetadd(tileset set, int x, int y, bool hascoll) {
 }
 
 tilemap loadtilemap(char path[]) {
-    tilemap map = (tilemap)malloc(sizeof(*map));
+    tilemap map;
 
     FILE *file = fopen(path, "rb");
 
@@ -102,23 +97,18 @@ tilemap loadtilemap(char path[]) {
     fread(data, 1, len, file);
     fclose(file);
 
-    map->width = data[0];
-    map->height = data[1];
+    map.width = data[0];
+    map.height = data[1];
 
-    map->data = (int*)malloc(map->width*map->height*sizeof(int));
+    map.data = (int*)malloc(map.width*map.height*sizeof(int));
 
-    for (int i = 0; i < map->width*map->height; i++) {
-        map->data[i] = data[i+2];
+    for (int i = 0; i < map.width*map.height; i++) {
+        map.data[i] = data[i+2];
     }
 
     return map;
 }
 
 void freetileset(tileset set) {
-    free(set->map->data);
-    free(set->tiles);
-}
-
-void freetilemap(tilemap map) {
-    free(map->data);
+    free(set);
 }
