@@ -82,7 +82,7 @@ void blitscreen(buffer buf, screen scr) {
 
         for (int x = 0; x < elem.width; x++) {
             for (int y = 0; y < elem.height; y++) {
-                putpix(buf, elem.x+x, elem.y+y, elem.data[IDX(elem.x+x, elem.y+y, elem.width)]);
+                putpix(buf, elem.x+x, elem.y+y, elem.data[IDX(x, y, elem.width)]);
             }
         }
     }
