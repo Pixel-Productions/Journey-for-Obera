@@ -67,14 +67,48 @@ screen loadscreen(char path[]) {
             elem.height = img.height;
 
             elem.data = (color_t*)malloc(elem.width*elem.height*sizeof(color_t));
-
             memcpy(elem.data, img.data, img.width*img.height*sizeof(color_t));
 
             freeimage(img);
 
             inc = plen+3;
+        } else if (type == 2) {
+            int plen = 0;
+            while (data[mi+3+plen] != 0) {
+                plen++;
+            }
+            plen++;
+
+            char pth[plen];
+            memcpy(pth, data+mi+3, plen);
+
+            int slen = 0;
+            while(data[mi+3+plen+slen] != 0) {
+                slen++;
+            }
+            slen++;
+
+            char str[slen];
+            memcpy(str, data+mi+3+plen, slen);
+
+            image img = loadimage(pth);
+
+            buffer buf = createbuffer(slen*6, 6);
+            blitstr(buf, 0, 0, img, str, slen, CENTERED);
+
+            elem.width = buf->width;
+            elem.height = buf->height;
+
+            elem.data = (color_t*)malloc(slen*36*sizeof(color_t));
+            memcpy(elem.data, buf->data, slen*36*sizeof(color_t));
+
+            freebuffer(buf);
+            freeimage(img);
+
+            inc = plen+slen+3;
         }
 
+        printf("%d, %d", elem.width, elem.height);
         scr.elems[i] = elem;
         
         i++;
