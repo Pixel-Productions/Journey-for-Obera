@@ -21,7 +21,7 @@ image loadimage(char path[]) {
 
     int *raw = (int*)malloc(size*sizeof(int));
     fseek(file, header[10], SEEK_SET);
-    fread(raw, sizeof(int), size*sizeof(int), file);
+    fread(raw, sizeof(int), size, file);
     
     img.data = (color_t*)malloc(size*sizeof(color_t));
 
@@ -35,6 +35,10 @@ image loadimage(char path[]) {
     fclose(file);
 
     return img;
+}
+
+void freeimage(image img) {
+    free(img.data);
 }
 
 tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, enum TILE_DEFINITION_MODE mode) {
@@ -84,6 +88,10 @@ void tilesetadd(tileset set, int x, int y, bool hascoll) {
     set->tc = set->tc+1;
 }
 
+void freetileset(tileset set) {
+    free(set);
+}
+
 tilemap loadtilemap(char path[]) {
     tilemap map;
 
@@ -109,6 +117,6 @@ tilemap loadtilemap(char path[]) {
     return map;
 }
 
-void freetileset(tileset set) {
-    free(set);
+void freetilemap(tilemap map) {
+    free(map.data);
 }

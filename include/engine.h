@@ -22,9 +22,16 @@ enum ITEM_TYPE {
     FOOD = 1
 };
 
+
+typedef struct {
+    int width, height;
+    color_t *data;
+} *buffer;
+
 typedef struct {
     int x, y;
 } vec2;
+
 
 typedef struct {
     color_t *data;

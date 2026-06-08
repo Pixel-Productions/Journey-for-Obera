@@ -12,16 +12,34 @@
 #include "items.h"
 #include "physics.h"
 #include "ui.h"
-#include "assets.h"
+#include "buffering.h"
 
 #pragma region SCREEN BUFFERS
 
 #define BUF_LEN SCREEN_WIDTH*SCREEN_HEIGHT
 #define BUF_SIZE BUF_LEN*sizeof(color_t)
 
-color_t fbuf[BUF_LEN] = { 0 };
-color_t bbuf[BUF_LEN] = { 0 };
+buffer fbuf;
+buffer bbuf;
 bool cbuf[BUF_LEN] = { false };
+
+#pragma endregion
+
+#pragma region ASSETS
+
+image font_default;
+
+image shoura_down;
+image shoura_up;
+image shoura_left;
+image shoura_right;
+
+tileset overworld;
+tilemap overworld_dat;
+
+item apple;
+
+screen inventory_scr;
 
 #pragma endregion
 
@@ -42,6 +60,9 @@ item inventory[36];
 bool inputmap[255] = { false };
 
 int main() {
+    fbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+    bbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+
     printf("\e[?25l");
 
     font_default = loadimage("assets/textures/fonts/font_default.bmp");
@@ -126,16 +147,22 @@ int main() {
 
         usleep(33000);
     }
+
+    freeimage(font_default);
+    freeimage(shoura_down);
+    freeimage(shoura_up);
+    freeimage(shoura_left);
+    freeimage(shoura_right);
     
     freetileset(overworld);
-
-    //freeitem(apple);
-
-    //freescreen(inventory_scr);
+    freetilemap(overworld_dat);
 
     scanoff();
 
     printf("\e[?25h");
+
+    freebuffer(fbuf);
+    freebuffer(bbuf);
 
     return 0;
 }
