@@ -22,6 +22,7 @@ vec2 newvec2(int x, int y) {
 
 rect2 newrect2(int x, int y, int width, int height) {
     rect2 r;
+    
     r.x = x;
     r.y = y;
     r.width = width;

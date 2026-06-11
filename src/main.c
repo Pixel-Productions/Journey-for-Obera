@@ -162,7 +162,7 @@ int main() {
     bbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
     cbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    prect = newrect2(SCREEN_WIDTH/2-4, SCREEN_HEIGHT/2-4, 8, 8);
+    prect = newrect2(SCREEN_WIDTH/2-8, SCREEN_HEIGHT/2-8, 16, 16);
 
     font_default = loadimage("assets/textures/fonts/font_default.bmp");
 
@@ -230,7 +230,7 @@ int main() {
         if (inputmap['`'])
             quit = 1;
         
-        memset(cbuf, 0, sizeof(cbuf));
+        memset(cbuf->data, 0, sizeof(cbuf));
 
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
         blittilemap(fbuf, cbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
