@@ -2,87 +2,36 @@
 
 #pragma once
 
-#define SCREEN_WIDTH 96
-#define SCREEN_HEIGHT 64
-
 typedef unsigned int color_t;
-
-enum DRAW_IMAGE_MODE {
-    TOP_LEFT = 0,
-    CENTERED = 1
-};
-
-enum TILE_DEFINITION_MODE {
-    AUTOMATIC = 0,
-    USER_DEFINED = 1
-};
-
-enum ITEM_TYPE {
-    BASIC = 0,
-    FOOD = 1
-};
-
-
-typedef struct {
-    int width, height;
-    color_t *data;
-} *buffer;
 
 typedef struct {
     int x, y;
 } vec2;
 
-
-typedef struct {
-    color_t *data;
-    int width;
-    int height;
-} image;
-
 typedef struct {
     int x, y;
-    bool hascoll;
-} tile;
-
-typedef struct {
-    image map;
-    tile *tiles;
-    int tc, tw, th, tox, toy, tsx, tsy;
-    enum TILE_DEFINITION_MODE mode;
-} *tileset;
-
-typedef struct {
     int width, height;
-    int *data;
-} tilemap;
+} rect2;
 
+vec2 newvec2(int x, int y) {
+    vec2 v;
+    v.x = x;
+    v.y = y;
+    return v;
+}
 
-typedef struct {
-    int x, y, width, height;
-    color_t *data;
-} uielem;
-
-typedef struct {
-    int width, height;
-    uielem *elems;
-    int ec;
-} screen;
-
-
-typedef struct {
-    int id;
-    char *name;
-    image texture;
-    enum ITEM_TYPE type;
-    int *data;
-} item;
-
+rect2 newrect2(int x, int y, int width, int height) {
+    rect2 r;
+    r.x = x;
+    r.y = y;
+    r.width = width;
+    r.height = height;
+    return r;
+}
 
 #define PI 3.1415
 
 #define IDX(x, y, xb) ((x) + (y) * (xb))
-
-#define SIDX(x, y) (IDX(x, y, SCREEN_WIDTH))
 
 #define COLOR(r, g, b, a) ((color_t)((a) << 24 | (r) << 16 | (g) << 8 | (b)))
 

@@ -9,19 +9,99 @@
 #include "images.h"
 #include "drawing.h"
 #include "input.h"
-#include "items.h"
 #include "physics.h"
-#include "ui.h"
 #include "buffering.h"
+
+#define SCREEN_WIDTH 96
+#define SCREEN_HEIGHT 64
+
+typedef struct {
+    int id;
+    char *name;
+    image texture;
+} item;
+
+typedef struct {
+    item itm;
+    int count;
+} itemstack;
+
+int ic = 0;
+item itemregistry[1];
+
+void registeritem(int id, char name[], image texture) {
+    item itm;
+
+    itm.id = id;
+    itm.name = name;
+    itm.texture = texture;
+
+    itemregistry[ic] = itm;
+    ic++;
+}
+
+itemstack getitem(int id) {
+    itemstack itmstack;
+    itmstack.itm = itemregistry[id];
+    itmstack.count = 1;
+}
+
+void freeitems() {
+    for (int i = 0; i < LENOF(itemregistry); i++) {
+        freeimage(itemregistry[i].texture);
+    }
+}
+
+enum SPELL_EFFECT_TYPE {
+    DAMAGE,
+    HEAL
+};
+
+enum SPELL_CAST_TYPE {
+    PROJECTILE,
+    BURST,
+    CENTRALIZED
+};
+
+typedef struct {
+    int id;
+    char *name;
+    enum SPELL_EFFECT_TYPE effect;
+    enum SPELL_CAST_TYPE cast;
+    int factor;
+    image texture;
+} spell;
+
+int sc = 1;
+spell spellregistry[8];
+
+void registerspell(int id, char name[], enum SPELL_EFFECT_TYPE effect, enum SPELL_CAST_TYPE cast, int factor, image texture) {
+    spell spl;
+
+    spl.id = id;
+    spl.name = name;
+    spl.effect = effect;
+    spl.cast = cast;
+    spl.texture = texture;
+
+    spellregistry[sc] = spl;
+    sc++;
+}
+
+void freespells() {
+    for (int i = 0; i < LENOF(spellregistry); i++) {
+        freeimage(spellregistry[i].texture);
+    }
+}
 
 #pragma region SCREEN BUFFERS
 
 #define BUF_LEN SCREEN_WIDTH*SCREEN_HEIGHT
-#define BUF_SIZE BUF_LEN*sizeof(color_t)
+#define BUF_SIZE BUF_LEN*sizeof(int)
 
 buffer fbuf;
 buffer bbuf;
-bool cbuf[BUF_LEN] = { false };
+buffer cbuf;
 
 #pragma endregion
 
@@ -39,31 +119,50 @@ tilemap overworld_dat;
 
 item apple;
 
-screen inventory_scr;
+#pragma endregion
+
+#pragma region WORLD DATA
+
+int time = 0;
+
+bool quit = false;
 
 #pragma endregion
 
 #pragma region PLAYER DATA
 
-int time = 0;
-
 vec2 pos;
 vec2 vel;
+
+rect2 prect;
+
 int maxspeed = 2;
 int facingdir = 0;
 
 bool iopen = false;
-item inventory[36];
+int invc = 0;
+itemstack inventory[16];
+
+void invadditem(itemstack itm) {
+    inventory[invc] = itm;
+    invc++;
+}
+
+item sword;
+item shield;
 
 #pragma endregion
 
 bool inputmap[255] = { false };
 
 int main() {
+    printf("\e[?25l");
+
     fbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
     bbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+    cbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    printf("\e[?25l");
+    prect = newrect2(SCREEN_WIDTH/2-4, SCREEN_HEIGHT/2-4, 8, 8);
 
     font_default = loadimage("assets/textures/fonts/font_default.bmp");
 
@@ -86,9 +185,13 @@ int main() {
 
     overworld_dat = loadtilemap("assets/data/tilemaps/overworld.bin");
 
-    apple = loaditem("assets/data/items/apple.bin", "assets/textures/items/apple.bmp");
+    registeritem(0, "Apple", loadimage("assets/textures/items/apple.bmp"));
 
-    inventory_scr = loadscreen("assets/data/ui/inventory.bin");
+    invadditem(getitem(0));
+    invadditem(getitem(0));
+
+    registerspell(0, "Fireball", DAMAGE, PROJECTILE, 5, loadimage("assets/textures/spells/fireball.bmp"));
+    registerspell(1, "Fireball2", DAMAGE, PROJECTILE, 5, loadimage("assets/textures/spells/fireball.bmp"));
 
     // Ready game
     pos.x = 0;
@@ -100,8 +203,8 @@ int main() {
     // Input setup
     scanon();
 
-    while (!inputmap['`']) {
-        getinput(inputmap);
+    while (!quit) {
+        readinput(inputmap);
 
         if (inputmap['w']) {
             vel.y = MAX(vel.y - 1, -maxspeed);
@@ -124,17 +227,33 @@ int main() {
         if (inputmap['e'])
             iopen = !iopen;
         
-        memset(cbuf, false, sizeof(cbuf));
+        if (inputmap['`'])
+            quit = 1;
+        
+        memset(cbuf, 0, sizeof(cbuf));
 
         blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
         blittilemap(fbuf, cbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
         blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
-        
+
         if (iopen) {
-            blitscreen(fbuf, inventory_scr);
+            blitcol(fbuf, 10, 10, SCREEN_WIDTH-10, SCREEN_HEIGHT-10, COLOR(0, 0, 0, 180));
+            blitstr(fbuf, SCREEN_WIDTH/2, 15, font_default, "Menu", 4, CENTERED);
+
+            for (int i = 0; i < sc; i++) {
+                int x = (SCREEN_WIDTH/2-18)+(i%2)*9;
+                int y = 24+(int)(i/4)*9;
+                blitimg(fbuf, x, y, spellregistry[i].texture, CENTERED);
+            }
+
+            for (int i = 0; i < invc; i++) {
+                int x = SCREEN_WIDTH/2+(i%4)*9;
+                int y = 24+(int)(i/4)*9;
+                blitimg(fbuf, x, y, inventory[i].itm.texture, CENTERED);
+            }
         }
 
-        moveandcoll(cbuf, &vel, &pos);
+        moveandcoll(cbuf, vel, &pos, prect);
 
         if (memcmp(fbuf, bbuf, BUF_SIZE) != 0) {
             memcpy(bbuf, fbuf, BUF_SIZE);
@@ -148,6 +267,9 @@ int main() {
         usleep(33000);
     }
 
+    freeitems();
+    freespells();
+
     freeimage(font_default);
     freeimage(shoura_down);
     freeimage(shoura_up);
@@ -159,10 +281,10 @@ int main() {
 
     scanoff();
 
-    printf("\e[?25h");
-
     freebuffer(fbuf);
     freebuffer(bbuf);
+    freebuffer(cbuf);
 
+    printf("\e[?25h");
     return 0;
 }
