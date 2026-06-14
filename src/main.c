@@ -1,16 +1,10 @@
-#define _DEFAULT_SOURCE
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <memory.h>
-#include <math.h>
+#define MA_IMPLEMENTATION
+
 #include "engine.h"
 #include "images.h"
 #include "drawing.h"
-#include "input.h"
 #include "physics.h"
-#include "buffering.h"
+#include "miniaudio.h"
 
 #define SCREEN_WIDTH 96
 #define SCREEN_HEIGHT 64
@@ -48,7 +42,7 @@ itemstack getitem(int id) {
 
 void freeitems() {
     for (int i = 0; i < LENOF(itemregistry); i++) {
-        freeimage(itemregistry[i].texture);
+        free_image(itemregistry[i].texture);
     }
 }
 
@@ -90,20 +84,11 @@ void registerspell(int id, char name[], enum SPELL_EFFECT_TYPE effect, enum SPEL
 
 void freespells() {
     for (int i = 0; i < LENOF(spellregistry); i++) {
-        freeimage(spellregistry[i].texture);
+        free_image(spellregistry[i].texture);
     }
 }
 
-#pragma region SCREEN BUFFERS
-
-#define BUF_LEN SCREEN_WIDTH*SCREEN_HEIGHT
-#define BUF_SIZE BUF_LEN*sizeof(int)
-
-buffer fbuf;
-buffer bbuf;
-buffer cbuf;
-
-#pragma endregion
+game oneday;
 
 #pragma region ASSETS
 
@@ -153,45 +138,39 @@ item shield;
 
 #pragma endregion
 
-bool inputmap[255] = { false };
-
 int main() {
-    printf("\e[?25l");
+    oneday = init_game(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    fbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-    bbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-    cbuf = createbuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+    prect = rect2_init(SCREEN_WIDTH/2-8, SCREEN_HEIGHT/2-8, 16, 16);
 
-    prect = newrect2(SCREEN_WIDTH/2-8, SCREEN_HEIGHT/2-8, 16, 16);
+    font_default = load_image("assets/textures/fonts/font_default.bmp");
 
-    font_default = loadimage("assets/textures/fonts/font_default.bmp");
+    shoura_down = load_image("assets/textures/shoura_down.bmp");
+    shoura_up = load_image("assets/textures/shoura_up.bmp");
+    shoura_left = load_image("assets/textures/shoura_left.bmp");
+    shoura_right = load_image("assets/textures/shoura_right.bmp");
 
-    shoura_down = loadimage("assets/textures/shoura_down.bmp");
-    shoura_up = loadimage("assets/textures/shoura_up.bmp");
-    shoura_left = loadimage("assets/textures/shoura_left.bmp");
-    shoura_right = loadimage("assets/textures/shoura_right.bmp");
+    overworld = load_tileset("assets/textures/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
+    tileset_add_tile(overworld, 0, 0, true);
+    tileset_add_tile(overworld, 1, 0, false);
+    tileset_add_tile(overworld, 2, 0, false);
+    tileset_add_tile(overworld, 3, 0, false);
+    tileset_add_tile(overworld, 1, 1, false);
+    tileset_add_tile(overworld, 2, 1, false);
+    tileset_add_tile(overworld, 3, 1, false);
+    tileset_add_tile(overworld, 1, 2, false);
+    tileset_add_tile(overworld, 2, 2, false);
+    tileset_add_tile(overworld, 3, 2, false);
 
-    overworld = loadtileset("assets/textures/tilemaps/overworld.bmp", 16, 16, 0, 0, 0, 0, USER_DEFINED);
-    tilesetadd(overworld, 0, 0, true);
-    tilesetadd(overworld, 1, 0, false);
-    tilesetadd(overworld, 2, 0, false);
-    tilesetadd(overworld, 3, 0, false);
-    tilesetadd(overworld, 1, 1, false);
-    tilesetadd(overworld, 2, 1, false);
-    tilesetadd(overworld, 3, 1, false);
-    tilesetadd(overworld, 1, 2, false);
-    tilesetadd(overworld, 2, 2, false);
-    tilesetadd(overworld, 3, 2, false);
+    overworld_dat = load_tilemap("assets/data/tilemaps/overworld.bin");
 
-    overworld_dat = loadtilemap("assets/data/tilemaps/overworld.bin");
-
-    registeritem(0, "Apple", loadimage("assets/textures/items/apple.bmp"));
+    registeritem(0, "Apple", load_image("assets/textures/items/apple.bmp"));
 
     invadditem(getitem(0));
     invadditem(getitem(0));
 
-    registerspell(0, "Fireball", DAMAGE, PROJECTILE, 5, loadimage("assets/textures/spells/fireball.bmp"));
-    registerspell(1, "Fireball2", DAMAGE, PROJECTILE, 5, loadimage("assets/textures/spells/fireball.bmp"));
+    registerspell(0, "Fireball", DAMAGE, PROJECTILE, 5, load_image("assets/textures/spells/fireball.bmp"));
+    registerspell(1, "Fireball2", DAMAGE, PROJECTILE, 5, load_image("assets/textures/spells/fireball.bmp"));
 
     // Ready game
     pos.x = 0;
@@ -200,91 +179,73 @@ int main() {
     vel.x = 0;
     vel.y = 0;
 
-    // Input setup
-    scanon();
-
     while (!quit) {
-        readinput(inputmap);
+        game_tick(oneday);
 
-        if (inputmap['w']) {
+        if (oneday->input['w']) {
             vel.y = MAX(vel.y - 1, -maxspeed);
             facingdir = 0;
-        } else if (inputmap['s']) {
+        } else if (oneday->input['s']) {
             vel.y = MIN(vel.y+1, maxspeed);
             facingdir = 2;
         } else if (vel.y != 0)
             vel.y -= (vel.y / abs(vel.y));
         
-        if (inputmap['d']) {
+        if (oneday->input['d']) {
             vel.x = MIN(vel.x+1, maxspeed);
             facingdir = 1;
-        } else if (inputmap['a']) {
+        } else if (oneday->input['a']) {
             vel.x = MAX(vel.x-1, -maxspeed);
             facingdir = 3;
         } else if (vel.x != 0)
-            vel.x -= (vel.x / abs(vel.x));
+            vel.x -= (vel.x > 0 ? 1 : -1);
         
-        if (inputmap['e'])
+        if (oneday->input['e'])
             iopen = !iopen;
         
-        if (inputmap['`'])
+        if (oneday->input['`'])
             quit = 1;
-        
-        memset(cbuf->data, 0, sizeof(cbuf));
 
-        blitcol(fbuf, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
-        blittilemap(fbuf, cbuf, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
-        blitimg(fbuf, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
+        blit_color(oneday, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR(50, 127, 255, 255));
+        blit_tilemap(oneday, -pos.x, -pos.y, overworld, overworld_dat, TOP_LEFT);
+
+        blit_image(oneday, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, (facingdir == 0 ? shoura_up : facingdir == 1 ? shoura_right : facingdir == 2 ? shoura_down : shoura_left), CENTERED);
 
         if (iopen) {
-            blitcol(fbuf, 10, 10, SCREEN_WIDTH-10, SCREEN_HEIGHT-10, COLOR(0, 0, 0, 180));
-            blitstr(fbuf, SCREEN_WIDTH/2, 15, font_default, "Menu", 4, CENTERED);
+            blit_color(oneday, 10, 10, SCREEN_WIDTH-10, SCREEN_HEIGHT-10, COLOR(0, 0, 0, 180));
+            blit_string(oneday, SCREEN_WIDTH/2, 15, font_default, "Menu", 4, CENTERED);
 
             for (int i = 0; i < sc; i++) {
                 int x = (SCREEN_WIDTH/2-18)+(i%2)*9;
                 int y = 24+(int)(i/4)*9;
-                blitimg(fbuf, x, y, spellregistry[i].texture, CENTERED);
+                blit_image(oneday, x, y, spellregistry[i].texture, CENTERED);
             }
 
             for (int i = 0; i < invc; i++) {
                 int x = SCREEN_WIDTH/2+(i%4)*9;
                 int y = 24+(int)(i/4)*9;
-                blitimg(fbuf, x, y, inventory[i].itm.texture, CENTERED);
+                blit_image(oneday, x, y, inventory[i].itm.texture, CENTERED);
             }
         }
 
-        moveandcoll(cbuf, vel, &pos, prect);
-
-        if (memcmp(fbuf, bbuf, BUF_SIZE) != 0) {
-            memcpy(bbuf, fbuf, BUF_SIZE);
-
-            clear();
-            render(fbuf);
-        }
+        move_and_collide(oneday, vel, &pos, prect);
 
         time += 1;
-
-        usleep(33000);
     }
 
     freeitems();
     freespells();
 
-    freeimage(font_default);
-    freeimage(shoura_down);
-    freeimage(shoura_up);
-    freeimage(shoura_left);
-    freeimage(shoura_right);
+    free_image(font_default);
+    free_image(shoura_down);
+    free_image(shoura_up);
+    free_image(shoura_left);
+    free_image(shoura_right);
     
-    freetileset(overworld);
-    freetilemap(overworld_dat);
+    free_tileset(overworld);
+    free_tilemap(overworld_dat);
 
-    scanoff();
+    end_game(oneday);
 
-    freebuffer(fbuf);
-    freebuffer(bbuf);
-    freebuffer(cbuf);
-
-    printf("\e[?25h");
     return 0;
 }

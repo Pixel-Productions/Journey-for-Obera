@@ -1,2 +1,2 @@
-gcc src/* -Iinclude -o oneday -lm
+gcc src/* -Iinclude -o oneday -lm -lasound
 #./oneday

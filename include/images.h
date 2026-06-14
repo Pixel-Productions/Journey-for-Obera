@@ -6,6 +6,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum DRAW_IMAGE_MODE {
     TOP_LEFT = 0,
     CENTERED = 1
@@ -38,7 +42,7 @@ typedef struct {
     int *data;
 } tilemap;
 
-image loadimage(char path[]) {
+image load_image(char path[]) {
     image img;
 
     FILE *file = fopen(path, "rb");
@@ -71,13 +75,13 @@ image loadimage(char path[]) {
     return img;
 }
 
-void freeimage(image img) {
+void free_image(image img) {
     free(img.data);
 }
 
-tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, enum TILE_DEFINITION_MODE mode) {
+tileset load_tileset(char path[], int tw, int th, int tox, int toy, int tsx, int tsy, enum TILE_DEFINITION_MODE mode) {
     tileset set = (tileset)malloc(sizeof(*set));
-    set->map = loadimage(path);
+    set->map = load_image(path);
     set->tw = tw;
     set->th = th;
     set->tox = tox;
@@ -110,7 +114,7 @@ tileset loadtileset(char path[], int tw, int th, int tox, int toy, int tsx, int 
     return set;
 }
 
-void tilesetadd(tileset set, int x, int y, bool hascoll) {
+void tileset_add_tile(tileset set, int x, int y, bool hascoll) {
     set->tiles = (tile*)realloc(set->tiles, (set->tc+1)*sizeof(tile));
 
     tile nw;
@@ -122,11 +126,11 @@ void tilesetadd(tileset set, int x, int y, bool hascoll) {
     set->tc = set->tc+1;
 }
 
-void freetileset(tileset set) {
+void free_tileset(tileset set) {
     free(set);
 }
 
-tilemap loadtilemap(char path[]) {
+tilemap load_tilemap(char path[]) {
     tilemap map;
 
     FILE *file = fopen(path, "rb");
@@ -151,6 +155,10 @@ tilemap loadtilemap(char path[]) {
     return map;
 }
 
-void freetilemap(tilemap map) {
+void free_tilemap(tilemap map) {
     free(map.data);
 }
+
+#ifdef __cplusplus
+}
+#endif
