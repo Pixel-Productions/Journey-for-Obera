@@ -1,4 +1,4 @@
-<input type="file" accept=".bmp">
+<input type="file" accept=".bmp" oninput="convert(this.files[0])">
 <script>
 	function convert(file) {
 		var fr = new FileReader();
