@@ -20,9 +20,9 @@ try {
 			out[3] = h >> 8 & 0xFF;
 
 			for (let i = 0; i < w*h*4; i += 4) {
-				out[i+4] = data[endidx-i-3];
+				out[i+4] = data[endidx-i-1];
 				out[i+5] = data[endidx-i-2];
-				out[i+6] = data[endidx-i-1];
+				out[i+6] = data[endidx-i-3];
 				out[i+7] = data[endidx-i];
 			}
 
