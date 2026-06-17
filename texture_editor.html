@@ -146,11 +146,11 @@ function saveImage() {
     
     var idx = 4;
 	for (var i of Array.from(grid.children)) {
-    	out[idx] = i.style.background == "#00000000" ? 0 : 255;
-        out[idx+1] = Number(i.style.background.substring(1, 7)) >> 16 & 0xFF;
-        out[idx+2] = Number(i.style.background.substring(1, 7)) >> 8 & 0xFF;
-        out[idx+3] = Number(i.style.background.substring(1, 7)) & 0xFF;
-        
+        out[idx] = Number(i.style.background.substring(1, 7)) >> 16 & 0xFF;
+        out[idx+1] = Number(i.style.background.substring(1, 7)) >> 8 & 0xFF;
+        out[idx+2] = Number(i.style.background.substring(1, 7)) & 0xFF;
+		out[idx+3] = i.style.background == "#00000000" ? 0 : 255;
+		
         idx += 4;
     }
     
