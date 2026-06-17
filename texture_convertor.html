@@ -1,0 +1,33 @@
+<body></body>
+<script>
+	function convert(file) {
+		var fr = new FileReader();
+
+		fr.onload = (result) => {
+			const w = result[19] << 8 | result[18];
+			const h = result[23] << 8 | result[22];
+
+			const startidx = result[10];
+
+			var out = new Uint8Array(w*h*4+4);
+			out[0] = w;
+			out[1] = w >> 8;
+			out[2] = h;
+			out[3] = h >> 8;
+
+			for (let i = 0; i < w*h*4; i += 4) {
+				out[i] = result[i+2];
+				out[i+1] = result[i+1];
+				out[i+2] = result[i];
+				out[i+3] = result[i+3];
+			}
+
+			var a = document.createElement("a");
+			a.href = URL.createObjectURL(new Blob([out], { "type": "application/octet-stream" }));
+			a.download = "texture.fif";
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		};
+	}
+</script>
