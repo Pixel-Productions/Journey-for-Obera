@@ -1,6 +1,8 @@
 <input type="file" accept=".bmp" oninput="for (var i of this.files) convert(i);" multiple>
 <script>
 try {
+	function IDX(x, y, xb) { return x + y * xb; }
+     
 	function convert(file) {
 		var fr = new FileReader();
 
@@ -11,7 +13,7 @@ try {
 			const w = view.getUint32(18, true);
 			const h = view.getUint32(22, true);
 
-			const endidx = w*h*4+view.getUint32(10, true)-1;
+			const startidx = view.getUint32(10, true);
 
 			var out = new Uint8Array(w*h*4+4);
 			out[0] = w & 0xFF;
@@ -19,11 +21,11 @@ try {
 			out[2] = h & 0xFF;
 			out[3] = h >> 8 & 0xFF;
 
-			for (let i = 0; i < w*h*4; i += 4) {
-				out[i+7] = data[endidx-(w-i)-1];
-				out[i+6] = data[endidx-(w-i)-2];
-				out[i+5] = data[endidx-(w-i)-3];
-				out[i+4] = data[endidx-(w-i)];
+			for (let x = 0; x < w; x++) {
+            	for (let y = 0; y < h; y++) {
+					const idx = 4+IDX(x, h-y-1, w)*4;
+                    const didx = IDX()
+                }
 			}
 
 			var a = document.createElement("a");
