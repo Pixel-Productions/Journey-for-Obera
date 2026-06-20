@@ -24,7 +24,12 @@ try {
 			for (let x = 0; x < w; x++) {
             	for (let y = 0; y < h; y++) {
 					const idx = 4+IDX(x, h-y-1, w)*4;
-                    const didx = IDX()
+                    const didx = startidx+IDX(x, y, w)*4;
+                    
+                    out[idx] = data[didx+2];
+                    out[idx+1] = data[didx+1];
+                    out[idx+2] = data[didx];
+                    out[idx+3] = data[didx+3];
                 }
 			}
 
