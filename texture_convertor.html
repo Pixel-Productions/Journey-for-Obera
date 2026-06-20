@@ -26,10 +26,10 @@ try {
 					const idx = 4+IDX(x, h-y-1, w)*4;
                     const didx = startidx+IDX(x, y, w)*4;
                     
-                    out[idx] = data[didx+2];
-                    out[idx+1] = data[didx+1];
-                    out[idx+2] = data[didx];
-                    out[idx+3] = data[didx+3];
+                    out[idx] = data[didx+3];
+                    out[idx+1] = data[didx];
+                    out[idx+2] = data[didx+1];
+                    out[idx+3] = data[didx+2];
                 }
 			}
 
