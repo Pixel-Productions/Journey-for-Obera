@@ -1,5 +1,6 @@
+#include <stdlib.h>
 #include <stdbool.h>
-#include "engine.h"
+#include "types.h"
 
 #pragma once
 
@@ -7,20 +8,40 @@
 extern "C" {
 #endif
 
-void add_collision_rect(game gm, int minx, int miny, int maxx, int maxy) {
-    for (int x = minx; x < maxx; x++) {
-        for (int y = miny; y < maxy; y++) {
-            if (x >= 0 && x < gm->width && y >= 0 && y < gm->height)
-                gm->cbuf[IDX(x, y, gm->width)] = true;
-        }
+shape shape_init(int w, int h) {
+    shape shp;
+    shp.width = w;
+    shp.height = h;
+
+    shp.data = (bool*)malloc(w*h);
+
+    return shp;
+}
+
+void blend_shapes(shape *sh1, shape sh2) {
+    for (int i = 0; i < sh1->width*sh1->height; i++) {
+        sh1->data[i] = sh1->data[i] || sh2.data[i];
     }
 }
 
-void move_and_collide(game gm, vec2 vel, vec2 *pos, rect2 rect) {
-    if (gm->cbuf[IDX(rect.x+rect.width+vel.x, rect.y+rect.height/2, gm->width)] && vel.x > 0 || gm->cbuf[IDX(rect.x+vel.x, rect.y+rect.height/2, gm->width)] && vel.x < 0) vel.x = 0;
-    if (gm->cbuf[IDX(rect.x+rect.width/2, rect.y+rect.height+vel.y, gm->width)] && vel.y > 0 || gm->cbuf[IDX(rect.x+rect.width/2, rect.y+vel.y, gm->width)] && vel.y < 0) vel.y = 0;
-    pos->x += vel.x;
-    pos->y += vel.y;
+void move_and_collide(game gm, object obj) {
+    if (obj->can_collide) {
+        for (int x = 0; x < obj->shp.width; x++) {
+            for (int y = 0; y < obj->shp.height; y++) {
+                if (
+                    !obj->shp.data[IDX(x+1, y, obj->shp.width)] && !gm->cbuf[IDX(obj->pos.x+x+obj->vel.x, obj->pos.y+y, gm->width)] && obj->vel.x > 0
+                    || !obj->shp.data[IDX(x-1, y, obj->shp.width)] && !gm->cbuf[IDX(obj->pos.x+x-obj->vel.x, obj->pos.y+y, gm->width)] && obj->vel.x < 0
+                ) obj->vel.x = 0;
+                if (
+                    !obj->shp.data[IDX(x, y+1, obj->shp.width)] && !gm->cbuf[IDX(obj->pos.x+x, obj->pos.y+y+obj->vel.y, gm->width)] && obj->vel.y > 0
+                    || !obj->shp.data[IDX(x, y-1, obj->shp.width)] && !gm->cbuf[IDX(obj->pos.x+x, obj->pos.y+y-obj->vel.y, gm->width)] && obj->vel.y < 0
+                ) obj->vel.y = 0;
+            }
+        }
+    }
+
+    obj->pos.x += obj->vel.x;
+    obj->pos.y += obj->vel.y;
 }
 
 #ifdef __cplusplus
