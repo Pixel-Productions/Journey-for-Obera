@@ -1,8 +1,5 @@
-#ifdef __linux__
-    #include <X11/Xlib.h>
-#elif defined(_WIN32)
-    // Windows
-#endif
+#include <stdio.h>
+#include <stdbool.h>
 
 #pragma once
 
@@ -28,6 +25,8 @@ typedef unsigned int color_t;
 
 #define CLAMP(a, x, y) (MIN(MAX((a), (x)), (y)))
 
+#define ROUND_TO(a, x) ((a) / (x) * (x))
+
 #define VOID_PTR(val) ((void*)&val)
 
 #define VOID_PTR_CAST(val, type) (*(type*)(val))
@@ -42,38 +41,24 @@ enum ASSET_TYPE {
 enum OBJECT_TYPE {
     CUSTOM = -1,
     SPRITE = 0,
-    TILE_GRID = 1
+    ANIMATED_SPRITE = 1,
+    TILE_GRID = 2
 };
 
-struct _window;
-
-typedef struct _window *window;
-
-#ifdef __linux__
-    struct _window {
-        int px, py;
-        bool mouse_down;
-
-        bool input[255];
-
-        Display *display;
-        Window win;
-
-        XEvent *event;
-    };
-#elif defined(_WIN32)
-
-#endif
+enum WINDOW_TYPE {
+    X11 = 0,
+    WAYLAND = 1
+};
 
 typedef struct {
     void *val;
     enum ASSET_TYPE type;
-} asset;
+} *asset;
 
 typedef struct {
     color_t *data;
     int width, height;
-} image;
+} *image;
 
 typedef struct {
     int x, y;
@@ -84,12 +69,17 @@ typedef struct {
     image map;
     tile *tiles;
     int tc, tw, th, tox, toy, tsx, tsy;
-} tileset;
+} *tileset;
 
 typedef struct {
     int *data;
     int width, height;
-} tilemap;
+} *tilemap;
+
+typedef struct {
+    bool *data;
+    int width, height;
+} *shape;
 
 typedef struct {
     int x, y;
@@ -100,52 +90,95 @@ typedef struct {
     int width, height;
 } rect2;
 
-typedef struct {
-    bool *data;
-    int width, height;
-} shape;
-
 vec2 vec2_init(int x, int y) {
-    vec2 v;
-    v.x = x;
-    v.y = y;
-    return v;
+    vec2 vec = {
+        .x = x,
+        .y = y
+    };
+    return vec;
 }
 
-rect2 rect2_init(int x, int y, int width, int height) {
-    rect2 r;
-    
-    r.x = x;
-    r.y = y;
-    r.width = width;
-    r.height = height;
-    return r;
+rect2 rect2_init(int x, int y, int w, int h) {
+    rect2 rect = {
+        .x = x,
+        .y = y,
+        .width = w,
+        .height = h
+    };
+    return rect;
 }
 
-struct _list_elem {
+typedef struct _list_elem {
     void *val;
     int len;
 
     struct _list_elem *prev;
     struct _list_elem *next;
-};
-
-typedef struct _list_elem *list_elem;
+} *list_elem;
 
 typedef list_elem list;
 
-struct _dict_elem {
+typedef struct _dict_elem {
     void *key;
     void *val;
     int len;
 
     struct _dict_elem *prev;
     struct _dict_elem *next;
-};
-
-typedef struct _dict_elem *dict_elem;
+} *dict_elem;
 
 typedef dict_elem dict;
+
+typedef struct _stack_elem {
+    void *val;
+    
+    struct _stack_elem *next;
+    struct _stack_elem *head;
+    struct _stack_elem *tail;
+} *stack_elem;
+
+typedef stack_elem stack;
+
+typedef struct {
+    int x, y, button;
+} mouse_state;
+
+typedef struct {
+    int width, height;
+    bool should_close;
+
+    enum WINDOW_TYPE type;
+
+    dict data;
+
+    mouse_state mouse;
+    bool keyboard[255];
+} *window;
+
+struct _game {
+    window win;
+
+    mouse_state mouse;
+    bool keyboard[255];
+
+    int width, height, scale;
+    size_t bsize;
+    size_t scaled_size;
+
+    color_t *pbuf;
+    bool *cbuf;
+
+    color_t *wbuf;
+
+    dict assets;
+    list objects;
+
+    void (*tick)(struct _game *gm);
+};
+
+typedef struct _game *game;
+
+typedef void (*game_tick_func)(game gm);
 
 struct _object {
     enum OBJECT_TYPE type;
@@ -159,35 +192,14 @@ struct _object {
     vec2 pos;
     vec2 vel;
 
-    void (*tick)(struct _object *obj);
+    void (*tick)(game gm, struct _object *obj);
 };
 
 typedef struct _object *object;
 
-typedef void (*object_tick_func)(object obj);
+typedef void (*object_tick_func)(game gm, object obj);
 
 typedef void (*object_destructor_func)(object obj);
-
-struct _game {
-    window win;
-
-    int width, height;
-    size_t bsize;
-
-    color_t *pbuf;
-    bool *cbuf;
-
-    dict assets;
-    list objects;
-
-    bool input[255];
-
-    void (*tick)(struct _game *gm);
-};
-
-typedef struct _game *game;
-
-typedef void (*game_tick_func)(game gm);
 
 #ifdef __cplusplus
 }

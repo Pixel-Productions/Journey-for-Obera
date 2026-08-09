@@ -1,0 +1,1 @@
+idk how to compile c in batch

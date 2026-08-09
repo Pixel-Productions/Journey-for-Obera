@@ -1,28 +1,59 @@
-#include "../include/engine.h"
-#include "../include/object.h"
+#include "../include/falltree/engine.h"
+#include "../include/falltree/types.h"
+#include "../include/falltree/object.h"
+#include <unistd.h>
 
-void update(game gm) {
-    
+game jfo;
+int t = 0;
+
+int max_speed = 3;
+
+void tick(game gm) {
+    t++;
 }
 
-object tree;
+void shoura_tick(game gm, object obj) {
+    if (gm->keyboard['d'])
+        obj->vel.x = CLAMP(obj->vel.x+1, -max_speed, max_speed);
+    else if (gm->keyboard['a'])
+        obj->vel.x = CLAMP(obj->vel.x-1, -max_speed, max_speed);
+    else if (obj->vel.x != 0)
+        obj->vel.x -= obj->vel.x > 0 ? 1 : -1;
+
+    if (gm->keyboard['s'])
+        obj->vel.y = CLAMP(obj->vel.y+1, -max_speed, max_speed);
+    else if (gm->keyboard['w'])
+        obj->vel.y = CLAMP(obj->vel.y-1, -max_speed, max_speed);
+    else if (obj->vel.y != 0)
+        obj->vel.y -= obj->vel.y > 0 ? 1 : -1;
+
+    if (obj->vel.y > 0) {
+        animated_sprite_set_frame(obj, (t / 4) % 4);
+    } else if (obj->vel.y < 0) {
+        animated_sprite_set_frame(obj, 8 + (t / 4) % 4);
+    } else if (obj->vel.x > 0) {
+        animated_sprite_set_frame(obj, 12 + (t / 4) % 4);
+    } else if (obj->vel.x < 0) {
+        animated_sprite_set_frame(obj, 4 + (t / 4) % 4);
+    } else {
+        animated_sprite_set_frame(obj, ROUND_TO(animated_sprite_get_frame(obj), 4));
+    }
+
+    move_and_collide(gm, obj);
+}
 
 int main() {
-    game oneday = init_game("OneDay", 160, 90, 4);
-    load_asset(oneday, "tree", "assets/textures/fall_tree.fif", IMAGE);
+    jfo = game_init("Journey for Obera", 280, 160, 4);
 
-    tree = object_init(SPRITE, get_asset(oneday, "tree"));
-    tree->pos.x = 5;
-    tree->pos.y = 5;
+    load_asset(jfo, "shoura", "assets/textures/shoura.png", IMAGE);
 
-    list_add_elem(oneday->objects, tree);
+    object shoura = object_init(ANIMATED_SPRITE, get_asset(jfo, "shoura"), 16, 16, 4, 4, 0, 0, 0, 0);
+    shoura->tick = shoura_tick;
+    list_add_elem(jfo->objects, shoura);
 
-    image img = VOID_PTR_CAST(get_asset(oneday, "tree").val, image);
-    printf("%d, %d\r\n", img.width, img.height);
+    jfo->tick = tick;
+    game_start(jfo);
 
-    oneday->tick = update;
-
-    game_start(oneday);
-
-    end_game(oneday);
+    end_game(jfo);
+    return 0;
 }

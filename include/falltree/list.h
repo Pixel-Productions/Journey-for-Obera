@@ -1,5 +1,3 @@
-// List implementation by FireDude123 as part of the FallTree game engine
-
 #include <stdlib.h>
 #include "types.h"
 
@@ -10,7 +8,7 @@ extern "C" {
 #endif
 
 list list_init() {
-    list ls = (list)malloc(sizeof(*ls));
+    list ls = (list)calloc(1, sizeof*ls);
     ls->len = 0;
     return ls;
 }
@@ -22,7 +20,7 @@ list list_clone(list ls) {
 }
 
 list list_get_elem(list ls, int idx) {
-    list ptr = list_clone(ls);
+    list ptr = ls;
 
     for (int i = 0; i < idx; i++) {
         ptr = ptr->next;
@@ -36,12 +34,9 @@ void list_set_elem(list ls, int idx, void *val) {
 }
 
 static void list_update_len(list ls) {
-    list_elem ptr = list_clone(ls);
-
     int i = 1;
-    while (ptr->next != NULL) {
+    for (list ptr = ls; ptr->next != NULL; ptr = ptr->next) {
         i++;
-        ptr = ptr->next;
     }
     
     ls->len = i;
@@ -54,7 +49,7 @@ void list_add_elem(list ls, void *item) {
         list_elem elem = list_init();
         elem->val = item;
         elem->prev = last;
-        ls->next = elem;
+        last->next = elem;
     } else {
         ls->val = item;
     }
@@ -62,7 +57,7 @@ void list_add_elem(list ls, void *item) {
     list_update_len(ls);
 }
 
-void list_remove_item(list ls, int idx) {
+void list_remove_elem(list ls, int idx) {
     list_elem del = list_get_elem(ls, idx);
     del->prev->next = del->next;
     free(del);

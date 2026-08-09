@@ -1,0 +1,1 @@
+gcc -g src/* -D_GNU_SOURCE -Iinclude -lm -lasound -lwayland-client -ldecor-0 -lxkbcommon -ofalltree

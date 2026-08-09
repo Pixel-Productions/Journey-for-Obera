@@ -1,5 +1,3 @@
-// Dictionary implementation by FireDude123 as part of the FallTree game engine
-
 #include <stdlib.h>
 #include "types.h"
 
@@ -10,7 +8,7 @@ extern "C" {
 #endif
 
 dict dict_init() {
-    dict dct = (dict)malloc(sizeof(*dct));
+    dict dct = (dict)calloc(1, sizeof(*dct));
     dct->len = 0;
     return dct;
 }
@@ -22,20 +20,16 @@ dict dict_clone(dict dct) {
 }
 
 dict_elem dict_get_elem(dict dct, void *key) {
-    dict ptr = dict_clone(dct);
-
-    while (ptr != NULL) {
+    for (dict ptr = dct; ptr != NULL; ptr = ptr->next) {
         if (ptr->key == key)
             return ptr;
-
-        ptr = ptr->next;
     }
 
     return NULL;
 }
 
 dict_elem dict_get_elem_idx(dict dct, int idx) {
-    dict ptr = dict_clone(dct);
+    dict ptr = dct;
 
     for (int i = 0; i < idx; i++) {
         ptr = ptr->next;
@@ -51,11 +45,8 @@ void dict_set_elem(dict dct, void *key, void *val) {
 }
 
 static void dict_update_len(dict dct) {
-    dict ptr = dict_clone(dct);
-
     int i = 1;
-    while (ptr->next != NULL) {
-        ptr = ptr->next;
+    for (dict ptr = dct; ptr->next != NULL; ptr = ptr->next) {
         i++;
     }
 
@@ -79,12 +70,12 @@ void dict_add_elem(dict dct, void *key, void *val) {
     dict_update_len(dct);
 }
 
-void dict_remove_item(dict dct, void *key) {
+void dict_remove_elem(dict dct, void *key) {
     dict_elem del = dict_get_elem(dct, key);
     del->prev->next = del->next;
     free(del);
 
-    dict_update_len(del);
+    dict_update_len(dct);
 }
 
 void free_dict(dict dct) {
