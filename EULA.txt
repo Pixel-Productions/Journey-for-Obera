@@ -1,0 +1,33 @@
+Journey for Obera - End User License Agreement
+
+Copyright (c) 2026 - present p1xel12
+All rights reserved
+
+By using the software provided with this license(henceforth referred to as "the software"), you
+agree to certain terms, which are listed below:
+
+    1. Generative AI Policy
+        No piece of the software may be used to train Generative AI, such as an LLM, nor may it
+        be fed to Generative AI in any way, including submission as a prompt.
+    
+    2. Modification and Redistribution
+        The software may be modified and redistributed for personal or commercial purposes,
+        provided they do not infringe upon the terms of this agreement. Any such
+        redistributions must include a copy of this license.
+    
+    3. Usage of Software
+        Any software using or referencing the software must provide a copy of this license,
+        with additional terms optionally defined.
+    
+    4. Usage of Intellectual Property
+        All art, music, text, concepts, characters and code contained within the software or
+        used by the software are intellectual property of p1xel12. By using the software, you
+        agree to abide by certain terms regarding this intellectual property(henceforth
+        referred to as "the IP"):
+
+            a. License Term Application
+                All terms defined in this license apply to the IP as well as the software.
+            
+            b. Sexually Explicit Content
+                No piece of the IP may be used or interpreted in the creation of, or alongside,
+                sexually suggestive or explicit material.

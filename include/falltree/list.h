@@ -8,19 +8,12 @@ extern "C" {
 #endif
 
 list list_init() {
-    list ls = (list)calloc(1, sizeof*ls);
-    ls->len = 0;
+    list ls = (list)calloc(1, sizeof(*ls));
     return ls;
 }
 
-list list_clone(list ls) {
-    list ptr = list_init();
-    *ptr = *ls;
-    return ptr;
-}
-
-list list_get_elem(list ls, int idx) {
-    list ptr = ls;
+static list_elem list_get_elem_struct(list ls, int idx) {
+    list_elem ptr = ls->first;
 
     for (int i = 0; i < idx; i++) {
         ptr = ptr->next;
@@ -29,48 +22,65 @@ list list_get_elem(list ls, int idx) {
     return ptr;
 }
 
+void *list_get_elem(list ls, int idx) {
+    return list_get_elem_struct(ls, idx)->val;
+}
+
 void list_set_elem(list ls, int idx, void *val) {
-    list_get_elem(ls, idx)->val = val;
+    list_get_elem_struct(ls, idx)->val = val;
 }
 
 static void list_update_len(list ls) {
-    int i = 1;
-    for (list ptr = ls; ptr->next != NULL; ptr = ptr->next) {
-        i++;
+    if (ls->first != NULL) {
+        int i = 1;
+        for (list_elem ptr = ls->first; ptr->next != NULL; ptr = ptr->next)
+            i++;
+        
+        ls->len = i;
+    } else {
+        ls->len = 0;
     }
-    
-    ls->len = i;
 }
 
-void list_add_elem(list ls, void *item) {
-    if (ls->len != 0) {
-        list_elem last = list_get_elem(ls, ls->len-1);
+void list_add_elem(list ls, void *val) {
+    list_elem elem = (list_elem)calloc(1, sizeof(*elem));
+    elem->val = val;
 
-        list_elem elem = list_init();
-        elem->val = item;
-        elem->prev = last;
-        last->next = elem;
+    if (ls->first == NULL) {
+        ls->first = elem;
     } else {
-        ls->val = item;
+        list_get_elem_struct(ls, ls->len-1)->next = elem;
     }
 
     list_update_len(ls);
 }
 
 void list_remove_elem(list ls, int idx) {
-    list_elem del = list_get_elem(ls, idx);
-    del->prev->next = del->next;
-    free(del);
+    list_elem elem = list_get_elem_struct(ls, idx);
 
-    list_update_len(del);
+    if (idx != 0) {
+        list_elem prev = list_get_elem_struct(ls, idx-1);
+
+        prev->next = elem->next;
+    } else {
+        ls->first = list_get_elem_struct(ls, 1);
+    }
+
+    free(elem);
+
+    list_update_len(ls);
 }
 
 void free_list(list ls) {
-    while (ls != NULL) {
-        list next = ls->next;
-        free(ls);
-        ls = next;
+    list_elem ptr = ls->first;
+
+    while (ptr != NULL) {
+        list_elem next = ptr->next;
+        free(ptr);
+        ptr = next;
     }
+
+    free(ls);
 }
 
 #ifdef __cplusplus
